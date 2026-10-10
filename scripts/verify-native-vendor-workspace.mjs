@@ -153,6 +153,122 @@ assert.match(
   "Dashboard must activate the native vendor workspace.",
 );
 
+const vendorConversationServer = read(
+  "lib/mobile/server/vendor-conversation.ts",
+);
+const vendorConversationRoute = read(
+  "app/api/v1/mobile/vendor-workspace/conversations/[conversationId]/route.ts",
+);
+const vendorConversationSeenRoute = read(
+  "app/api/v1/mobile/vendor-workspace/conversations/[conversationId]/seen/route.ts",
+);
+
+assert.match(
+  vendorConversationRoute,
+  /authenticateMobileRequest/,
+  "Native conversation threads must use bearer authentication.",
+);
+assert.match(
+  vendorConversationSeenRoute,
+  /authenticateMobileRequest/,
+  "Native read-state writes must use bearer authentication.",
+);
+assert.doesNotMatch(
+  vendorConversationRoute + vendorConversationSeenRoute,
+  /cookies\(|createServerClient|SUPABASE_SERVICE_ROLE/,
+  "Native conversation routes must not use browser cookies or service-role authority.",
+);
+assert.match(
+  vendorConversationServer,
+  /\.eq\("vendor_user_id", user\.id\)/,
+  "Every native conversation operation must validate vendor ownership.",
+);
+assert.match(
+  vendorConversationServer,
+  /\.eq\("context_type", "rfq"\)/,
+  "Native vendor conversations must remain scoped to RFQs.",
+);
+assert.match(
+  vendorConversationServer,
+  /conversation\.is_closed === true/,
+  "Closed conversations must reject new native messages.",
+);
+assert.match(
+  vendorConversationServer,
+  /body\.length > 4000/,
+  "Native text messages must have a bounded length.",
+);
+assert.match(
+  vendorConversationServer,
+  /last_seen_message_id/,
+  "Native read state must preserve the canonical participant ledger.",
+);
+assert.match(
+  vendorConversationServer,
+  /\.eq\("conversation_id", conversation\.id\)/,
+  "Last-seen messages must belong to the selected conversation.",
+);
+assert.match(
+  vendorConversationServer,
+  /sendOperationalPush/,
+  "Native vendor replies must preserve operational push delivery.",
+);
+assert.match(
+  vendorConversationServer,
+  /trackMemoryEvent/,
+  "Native vendor replies must preserve non-blocking memory events.",
+);
+
+const vendorConversationScreen = read(
+  "apps/mobile/src/features/vendor/VendorConversationScreen.tsx",
+);
+
+assert.match(
+  nativeVendorApi,
+  /loadVendorConversation/,
+  "Native client must load conversation history.",
+);
+assert.match(
+  nativeVendorApi,
+  /sendVendorConversationMessage/,
+  "Native client must send protected text messages.",
+);
+assert.match(
+  nativeVendorApi,
+  /markVendorConversationSeen/,
+  "Native client must update canonical read state.",
+);
+assert.match(
+  nativeVendorWorkspaceScreen,
+  /VendorConversationScreen/,
+  "Conversation summaries must open the native thread screen.",
+);
+assert.match(
+  vendorConversationScreen,
+  /TextInput/,
+  "Native conversation threads must provide a message composer.",
+);
+assert.match(
+  vendorConversationScreen,
+  /maxLength=\{4000\}/,
+  "Native composer must enforce the server message limit.",
+);
+assert.match(
+  vendorConversationScreen,
+  /thread\.isClosed/,
+  "Closed conversations must disable native message sending.",
+);
+assert.match(
+  vendorConversationScreen,
+  /markVendorConversationSeen/,
+  "Opening and sending in a thread must update read state.",
+);
+assert.doesNotMatch(
+  vendorConversationScreen,
+  /Linking|WebView|canonicalWebUrl|openURL/,
+  "Native conversation threads must not open a browser or WebView.",
+);
+
 console.log(
   "MOB-48 native vendor RFQ workspace assertions passed.",
 );

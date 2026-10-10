@@ -127,3 +127,82 @@ export function loadVendorWorkspace(
     "Your vendor notifications and conversations could not be loaded.",
   );
 }
+
+export type VendorConversationMessage = {
+  id: string;
+  senderUserId: string | null;
+  senderRole: string;
+  messageType: string;
+  body: string;
+  createdAt: string | null;
+  isMine: boolean;
+};
+
+export type VendorConversationThread = {
+  id: string;
+  rfqId: string | null;
+  rfqNumber: string | null;
+  counterpartName: string | null;
+  isClosed: boolean;
+  messages: VendorConversationMessage[];
+};
+
+function conversationPath(conversationId: string) {
+  return `/api/v1/mobile/vendor-workspace/conversations/${encodeURIComponent(
+    conversationId,
+  )}`;
+}
+
+export function loadVendorConversation(
+  session: Session,
+  conversationId: string,
+): Promise<VendorConversationThread> {
+  return mobileApiRequest<VendorConversationThread>(
+    session,
+    conversationPath(conversationId),
+    { method: "GET" },
+    "Your conversation could not be loaded.",
+  );
+}
+
+export function sendVendorConversationMessage(
+  session: Session,
+  conversationId: string,
+  body: string,
+): Promise<VendorConversationMessage> {
+  return mobileApiRequest<VendorConversationMessage>(
+    session,
+    conversationPath(conversationId),
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ body }),
+    },
+    "Your message could not be sent.",
+  );
+}
+
+export function markVendorConversationSeen(
+  session: Session,
+  conversationId: string,
+  lastSeenMessageId: string | null,
+) {
+  return mobileApiRequest<{
+    conversationId: string;
+    lastReadAt: string;
+    lastSeenMessageId: string | null;
+  }>(
+    session,
+    `${conversationPath(conversationId)}/seen`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ lastSeenMessageId }),
+    },
+    "Your conversation read state could not be updated.",
+  );
+}

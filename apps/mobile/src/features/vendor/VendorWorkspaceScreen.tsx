@@ -17,6 +17,7 @@ import {
   type VendorNotification,
   type VendorWorkspace,
 } from "@/features/vendor/api";
+import { VendorConversationScreen } from "@/features/vendor/VendorConversationScreen";
 import { colors, radii, spacing, typography } from "@/theme/tokens";
 
 function readableTime(value: string | null) {
@@ -60,8 +61,10 @@ function NotificationCard({
 
 function ConversationCard({
   conversation,
+  onPress,
 }: {
   conversation: VendorConversation;
+  onPress(): void;
 }) {
   const title =
     conversation.counterpartName ||
@@ -69,8 +72,11 @@ function ConversationCard({
     "RFQ conversation";
 
   return (
-    <View
+    <Pressable
+      accessibilityHint="Opens this conversation inside the app"
       accessibilityLabel={`${title}, ${conversation.unreadCount} unread messages`}
+      accessibilityRole="button"
+      onPress={onPress}
       style={[
         styles.item,
         conversation.unreadCount > 0 && styles.unreadItem,
@@ -97,7 +103,11 @@ function ConversationCard({
 
       <Text
         numberOfLines={3}
-        style={conversation.lastMessageBody ? styles.body : styles.muted}
+        style={
+          conversation.lastMessageBody
+            ? styles.body
+            : styles.muted
+        }
       >
         {conversation.lastMessageBody ||
           "No conversation message is available yet."}
@@ -106,7 +116,7 @@ function ConversationCard({
       <Text style={styles.meta}>
         {readableTime(conversation.lastMessageAt)}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -121,6 +131,8 @@ export function VendorWorkspaceScreen({
     useState<VendorWorkspace | null>(null);
   const [busy, setBusy] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [selectedConversation, setSelectedConversation] =
+    useState<VendorConversation | null>(null);
 
   const refresh = useCallback(async () => {
     setBusy(true);
@@ -160,6 +172,25 @@ export function VendorWorkspaceScreen({
       ) ?? 0,
     [workspace],
   );
+
+  if (selectedConversation) {
+    const selectedTitle =
+      selectedConversation.counterpartName ||
+      selectedConversation.rfqNumber ||
+      "RFQ conversation";
+
+    return (
+      <VendorConversationScreen
+        conversationId={selectedConversation.id}
+        onBack={() => {
+          setSelectedConversation(null);
+          void refresh();
+        }}
+        session={session}
+        summaryTitle={selectedTitle}
+      />
+    );
+  }
 
   if (!workspace && busy) {
     return (
@@ -291,6 +322,9 @@ export function VendorWorkspaceScreen({
               <ConversationCard
                 conversation={conversation}
                 key={conversation.id}
+                onPress={() =>
+                  setSelectedConversation(conversation)
+                }
               />
             ))
           )}
