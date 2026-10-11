@@ -606,7 +606,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Link href="/ai-search-guide">Search Guide</Link>
               <Link href="/about">About Us</Link>
               <Link href="/contact">Contact Us</Link>
-              <Link href="/privacy-policy">Privacy Policy</Link>
+              <Link href="/privacy-policy">Privacy Policy</Link> <Link href="/delete-account">Request Account Deletion</Link>
               <Link href="/terms-and-conditions">Terms &amp; Conditions</Link>
               <Link href="/refund-cancellation-policy">
                 Refund / Cancellation
