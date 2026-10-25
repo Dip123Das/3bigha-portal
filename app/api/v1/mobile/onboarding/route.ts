@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { mobileFailure, mobileSuccess } from "@/lib/mobile/contracts/v1";
 import { authenticateMobileRequest, MobileAuthError } from "@/lib/mobile/server/auth";
-import { attachMobileEvidence, declareMobileIdentity, evaluateMobileRegistration, loadMobileOnboarding, MobileOnboardingError, saveMobileBusiness, saveMobileProfile, uploadMobileEvidence, verifyMobileLocation } from "@/lib/mobile/server/onboarding";
+import { attachMobileEvidence, declareMobileIdentity, evaluateMobileRegistration, loadMobileOnboarding, MobileOnboardingError, saveMobileBusiness, saveMobileProfessional, saveMobileProfile, uploadMobileEvidence, verifyMobileLocation } from "@/lib/mobile/server/onboarding";
 
 const headers = { "Cache-Control": "private, no-store, max-age=0", Vary: "Cookie, Authorization" };
 
@@ -28,6 +28,7 @@ export async function POST(request: Request) {
       case "declare_identity": await declareMobileIdentity(auth.supabase, auth.user, body.payload); break;
       case "save_profile": await saveMobileProfile(auth.supabase, auth.user, body.payload); break;
       case "save_business": await saveMobileBusiness(auth.supabase, auth.user, body.payload); break;
+      case "save_professional": await saveMobileProfessional(auth.supabase, auth.user, body.payload); break;
       case "verify_location": await verifyMobileLocation(auth.supabase, auth.user, body.payload); break;
       case "upload_evidence": { const asset = await uploadMobileEvidence(auth.supabase, auth.user, body.payload); await attachMobileEvidence(auth.supabase, auth.user, asset); break; }
       case "evaluate": await evaluateMobileRegistration(auth.supabase); break;
