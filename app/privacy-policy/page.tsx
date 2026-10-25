@@ -67,7 +67,25 @@ export default function PrivacyPolicyPage() {
           own privacy policies.
         </p>
 
-        <h2 style={{ marginTop: 16 }}>Policy updates</h2>
+                <h2 style={{ marginTop: 16 }}>Account deletion and retention</h2>
+        <p style={{ color: "#475569", lineHeight: 1.8 }}>
+          You can request deletion without signing in by emailing{" "}
+          <a href="mailto:support@3bigha.com">support@3bigha.com</a>. Include
+          the name and email address or phone number on your account. We may
+          verify ownership before processing the request and aim to complete
+          verified requests within 30 calendar days. The sign-in account and
+          database records linked to it for cascading deletion are removed by
+          the account-deletion process. A restricted administrator audit
+          currently retains the account ID, contact details, name, deletion
+          reason, and profile, business, and authentication metadata snapshots
+          without a fixed expiry. Other information may be retained where
+          required for legal obligations, security, fraud prevention, or
+          resolving disputes, and removed or anonymised when that need ends
+          where possible. Full instructions and details are available on our{" "}
+          <a href="/delete-account">account deletion page</a>.
+        </p>
+
+<h2 style={{ marginTop: 16 }}>Policy updates</h2>
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           This policy may be updated from time to time. Continued use of the
           platform implies acceptance of the latest version.
