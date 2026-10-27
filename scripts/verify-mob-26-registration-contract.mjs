@@ -48,7 +48,7 @@ assert.doesNotMatch(server, /input\.natureOfBusiness/);
 
 assert.match(screen, /Legal Constitution/);
 assert.match(screen, /Business Sectors/);
-assert.match(screen, /What does your organisation do\?/);
+assert.match(screen, /Choose the sectors in which the organisation actually works\./);
 assert.match(screen, /Your Individual Identity/);
 assert.match(screen, /Derived workspaces/);
 assert.match(screen, /accessibilityRole="checkbox"/);
