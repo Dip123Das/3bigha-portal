@@ -13,7 +13,7 @@ import {
 } from "react";
 
 import { getNativeSupabase } from "@/lib/auth/supabase";
-import { consumeNativeAuthCallback } from "@/lib/auth/callback";
+import { completeNativeAuthCallback } from "@/lib/auth/callback";
 
 type AuthState = {
   session: Session | null;
@@ -29,14 +29,6 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | null>(null);
 const ACTIVE_SESSION_REVALIDATION_INTERVAL_MS = 5 * 60_000;
-
-async function completeAuthCallback(url: string) {
-  const supabase = getNativeSupabase();
-  if (!supabase) return;
-  const code = consumeNativeAuthCallback(url);
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error) throw error;
-}
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const supabase = getNativeSupabase();
@@ -125,12 +117,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setReady(true);
     });
     const linkSubscription = Linking.addEventListener("url", ({ url }) => {
-      void completeAuthCallback(url).catch(() => {
+      void completeNativeAuthCallback(url).catch(() => {
         setCallbackError("That sign-in link is invalid or has expired. Please request a new one.");
       });
     });
     void Linking.getInitialURL().then((url) => {
-      if (url) return completeAuthCallback(url);
+      if (url) return completeNativeAuthCallback(url);
     }).catch(() => {
       setCallbackError("That sign-in link could not be completed. Please request a new one.");
     });

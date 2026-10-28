@@ -13,7 +13,7 @@ assert(callback.includes("candidate.protocol !== expected.protocol") && callback
 assert(callback.includes("candidate.username") && callback.includes("candidate.password") && callback.includes("candidate.hash"), "credential or fragment injection is not rejected");
 assert(callback.includes("keys.length !== 1") && callback.includes('keys[0] !== "code"') && callback.includes("MAX_AUTHORIZATION_CODE_LENGTH"), "callback parameter shape is not bounded");
 assert(callback.includes("callbackConsumed = true") && callback.includes("resetNativeAuthCallbackGate"), "one-time consumption and deliberate reset are incomplete");
-assert(provider.includes("consumeNativeAuthCallback(url)") && gateway.includes("consumeNativeAuthCallback(result.url)"), "cold, live and browser callbacks do not share the trust boundary");
+assert(provider.includes("completeNativeAuthCallback(url)") && gateway.includes("completeNativeAuthCallback(result.url)"), "cold, live and browser callbacks do not share the single-flight trust boundary");
 assert(gateway.includes("nativeAuthCallbackUrl()") && (gateway.match(/resetNativeAuthCallbackGate\(\)/g) || []).length >= 2, "sign-in initiators do not share and reset the canonical callback gate");
 for (const source of [callback, provider, gateway]) {
   assert(!source.includes("console.") && !source.includes("AsyncStorage"), "callback material may be logged or persisted");
