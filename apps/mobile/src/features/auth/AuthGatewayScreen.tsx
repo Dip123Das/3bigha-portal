@@ -16,7 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { getNativeSupabase } from "@/lib/auth/supabase";
-import { consumeNativeAuthCallback, nativeAuthCallbackUrl, resetNativeAuthCallbackGate } from "@/lib/auth/callback";
+import { completeNativeAuthCallback, nativeAuthCallbackUrl, resetNativeAuthCallbackGate } from "@/lib/auth/callback";
 import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
 import { DashboardGateway } from "@/features/dashboard/DashboardGateway";
 import { colors, radii, spacing, typography } from "@/theme/tokens";
@@ -149,9 +149,7 @@ export function AuthGatewayScreen() {
                 if (!data.url) throw new Error("Google sign-in could not be started.");
                 const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
                 if (result.type !== "success") return;
-                const code = consumeNativeAuthCallback(result.url);
-                const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-                if (exchangeError) throw exchangeError;
+                await completeNativeAuthCallback(result.url);
               })}
               style={styles.secondaryButton}
             >

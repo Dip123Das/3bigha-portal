@@ -1,7 +1,10 @@
 import * as Linking from "expo-linking";
 
+import { getNativeSupabase } from "@/lib/auth/supabase";
+
 const MAX_AUTHORIZATION_CODE_LENGTH = 2048;
 let callbackConsumed = false;
+let callbackExchange: { url: string; promise: Promise<void> } | null = null;
 
 export function nativeAuthCallbackUrl() {
   return Linking.createURL("auth/callback");
@@ -9,6 +12,23 @@ export function nativeAuthCallbackUrl() {
 
 export function resetNativeAuthCallbackGate() {
   callbackConsumed = false;
+  callbackExchange = null;
+}
+
+export function completeNativeAuthCallback(url: string): Promise<void> {
+  if (callbackExchange?.url === url) return callbackExchange.promise;
+
+  const supabase = getNativeSupabase();
+  if (!supabase) return Promise.reject(new Error("Mobile authentication is not configured."));
+
+  const promise = (async () => {
+    const code = consumeNativeAuthCallback(url);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) throw error;
+  })();
+
+  callbackExchange = { url, promise };
+  return promise;
 }
 
 export function consumeNativeAuthCallback(url: string): string {
