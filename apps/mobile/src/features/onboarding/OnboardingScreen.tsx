@@ -107,15 +107,20 @@ export function OnboardingScreen({ session }: { session: Session }) {
       authorBio: next.business.authorBio || current.authorBio, authorPortfolioUrl: next.business.authorPortfolioUrl || current.authorPortfolioUrl,
       aboutPerson: next.business.aboutPerson || current.aboutPerson, aboutBusiness: next.business.aboutBusiness || current.aboutBusiness,
     }));
+    const professional = next.professional ?? null;
     setProfessionalForm((current) => ({
-      ...current, secondarySkills: next.professional.secondarySkillKeys,
-      yearsExperience: next.professional.yearsExperience == null ? current.yearsExperience : String(next.professional.yearsExperience),
-      availabilityStatus: next.professional.availabilityStatus || current.availabilityStatus,
-      serviceRadiusKm: next.professional.serviceRadiusKm == null ? current.serviceRadiusKm : String(next.professional.serviceRadiusKm),
-      dailyWage: next.professional.dailyWage, hourlyWork: next.professional.hourlyWork, perJobWork: next.professional.perJobWork,
-      workerDeclarationAccepted: next.professional.workerDeclarationAccepted, originalNameWarningAccepted: next.professional.originalNameWarningAccepted,
-      identityDocumentType: next.professional.identityDocumentType || current.identityDocumentType,
-      identityDocumentMaskedReference: next.professional.identityDocumentMaskedReference || current.identityDocumentMaskedReference,
+      ...current,
+      secondarySkills: Array.isArray(professional?.secondarySkillKeys) ? professional.secondarySkillKeys : [],
+      yearsExperience: professional?.yearsExperience == null ? current.yearsExperience : String(professional.yearsExperience),
+      availabilityStatus: professional?.availabilityStatus || current.availabilityStatus,
+      serviceRadiusKm: professional?.serviceRadiusKm == null ? current.serviceRadiusKm : String(professional.serviceRadiusKm),
+      dailyWage: professional?.dailyWage ?? current.dailyWage,
+      hourlyWork: professional?.hourlyWork ?? current.hourlyWork,
+      perJobWork: professional?.perJobWork ?? current.perJobWork,
+      workerDeclarationAccepted: professional?.workerDeclarationAccepted ?? current.workerDeclarationAccepted,
+      originalNameWarningAccepted: professional?.originalNameWarningAccepted ?? current.originalNameWarningAccepted,
+      identityDocumentType: professional?.identityDocumentType || current.identityDocumentType,
+      identityDocumentMaskedReference: professional?.identityDocumentMaskedReference || current.identityDocumentMaskedReference,
     }));
     setBusinessIdentities(next.business.businessIdentities);
     setIndividualIdentities(next.business.individualIdentities);
