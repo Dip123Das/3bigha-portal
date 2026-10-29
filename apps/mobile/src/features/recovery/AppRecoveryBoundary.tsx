@@ -10,14 +10,37 @@ type Props = { children: ReactNode };
 type State = { failed: boolean; recoveryFailed: boolean; failureArea: string; errorKind: string };
 
 const SAFE_ERROR_KINDS = new Set(["Error", "TypeError", "ReferenceError", "SyntaxError", "RangeError", "URIError", "EvalError"]);
-const SAFE_COMPONENTS = ["AuthGatewayScreen", "IndexRoute", "AuthProvider", "ScreenCaptureProtection", "DeviceReauthenticationProvider", "AppPrivacyShield", "NotificationResponseProvider", "RootLayout"] as const;
+const SAFE_COMPONENTS = [
+  "VendorWorkspaceScreen",
+  "VendorRfqInboxScreen",
+  "OnboardingScreen",
+  "DashboardGateway",
+  "PropertyDiscoveryScreen",
+  "TrustedMediaCaptureScreen",
+  "NotificationDeviceCard",
+  "ReleaseHealthCard",
+  "AuthGatewayScreen",
+  "IndexRoute",
+  "AuthProvider",
+  "ScreenCaptureProtection",
+  "DeviceReauthenticationProvider",
+  "AppPrivacyShield",
+  "NotificationResponseProvider",
+  "RootLayout",
+] as const;
 
 function safeErrorKind(error: Error) {
   return SAFE_ERROR_KINDS.has(error.name) ? error.name : "UnknownError";
 }
 
 function safeFailureArea(componentStack: string | null | undefined) {
-  return SAFE_COMPONENTS.find((name) => componentStack?.includes(name)) ?? "OtherAppComponent";
+  // React Native component stacks list the failing child before its parents.
+  // Report only a known component name; never expose the stack itself.
+  for (const line of componentStack?.split(/\r?\n/) ?? []) {
+    const component = SAFE_COMPONENTS.find((name) => line.includes(name));
+    if (component) return component;
+  }
+  return "OtherAppComponent";
 }
 
 export class AppRecoveryBoundary extends Component<Props, State> {
