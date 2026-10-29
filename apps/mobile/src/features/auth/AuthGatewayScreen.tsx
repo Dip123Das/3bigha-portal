@@ -1,6 +1,6 @@
 import * as WebBrowser from "expo-web-browser";
 import type { Session } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -42,7 +42,6 @@ export function AuthGatewayScreen() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const redirectTo = nativeAuthCallbackUrl();
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -100,6 +99,7 @@ export function AuthGatewayScreen() {
                   onPress={() => void run(async () => {
                     if (!email.trim()) throw new Error("Please enter your email address.");
                     resetNativeAuthCallbackGate();
+                    const redirectTo = nativeAuthCallbackUrl();
                     const { error } = await supabaseOrThrow().auth.signInWithOtp({
                       email: email.trim(),
                       options: { emailRedirectTo: redirectTo, shouldCreateUser: true },
@@ -144,6 +144,7 @@ export function AuthGatewayScreen() {
               onPress={() => void run(async () => {
                 const supabase = supabaseOrThrow();
                 resetNativeAuthCallbackGate();
+                const redirectTo = nativeAuthCallbackUrl();
                 const { data, error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo, skipBrowserRedirect: true } });
                 if (error) throw error;
                 if (!data.url) throw new Error("Google sign-in could not be started.");
