@@ -75,6 +75,7 @@ export async function buildMobileBootstrap(
     businessProfileComplete:
       business.business_profile_complete === true || business.is_complete === true,
     registrationComplete: business.registration_complete === true,
+    dashboardAlreadyActive: String(profile.dashboard_activation_status || "").toLowerCase() === "active",
     locationVerified,
     eligibleFree:
       typeof business.eligible_free === "boolean" ? business.eligible_free : null,

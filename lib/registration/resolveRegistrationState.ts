@@ -20,6 +20,7 @@ export type RegistrationStateInput = {
   businessProfileComplete: boolean;
   registrationComplete: boolean;
   locationVerified: boolean;
+  dashboardAlreadyActive?: boolean;
   eligibleFree?: boolean | null;
 };
 
@@ -71,6 +72,20 @@ export function resolveRegistrationState(
     return {
       state: "ROLE_SELECTION_REQUIRED",
       reason: "No declared or permitted role is available.",
+    };
+  }
+
+  // Preserve an already activated account. An active dashboard together with
+  // completed onboarding and business registration is authoritative evidence
+  // that this member must not be sent through registration or plan review again.
+  if (
+    input.dashboardAlreadyActive === true &&
+    input.onboardingReady &&
+    input.registrationComplete
+  ) {
+    return {
+      state: input.isBusinessRole ? "ESSENTIAL_ACTIVE" : "READY",
+      reason: "The existing dashboard and registration are already active.",
     };
   }
 
