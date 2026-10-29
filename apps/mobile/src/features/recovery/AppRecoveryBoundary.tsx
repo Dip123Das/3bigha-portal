@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, radii, spacing, typography } from "@/theme/tokens";
 
 type Props = { children: ReactNode };
-type State = { failed: boolean; recoveryFailed: boolean; failureArea: string; errorKind: string };
+type State = { failed: boolean; recoveryFailed: boolean; failureArea: string; errorKind: string; errorDetail: string };
 
 const SAFE_ERROR_KINDS = new Set(["Error", "TypeError", "ReferenceError", "SyntaxError", "RangeError", "URIError", "EvalError"]);
 const SAFE_COMPONENTS = [
@@ -33,6 +33,23 @@ function safeErrorKind(error: Error) {
   return SAFE_ERROR_KINDS.has(error.name) ? error.name : "UnknownError";
 }
 
+function safeErrorDetail(error: Error) {
+  if (error.name !== "TypeError") return "";
+  const patterns = [
+    /Cannot read properties of (?:undefined|null) \(reading ['"]([A-Za-z_$][\w$]*)['"]\)/,
+    /Cannot read property ['"]([A-Za-z_$][\w$]*)['"] of (?:undefined|null)/,
+    /undefined is not an object \(evaluating ['"][^'"]*\.([A-Za-z_$][\w$]*)['"]\)/,
+    /\.([A-Za-z_$][\w$]*) is not a function/,
+  ];
+  for (const pattern of patterns) {
+    const match = String(error).match(pattern);
+    if (match?.[1]) return pattern.source.includes("is not a function")
+      ? `${match[1]} is not callable`
+      : `reading \"${match[1]}\"`;
+  }
+  return "";
+}
+
 function safeFailureArea(componentStack: string | null | undefined) {
   // React Native component stacks list the failing child before its parents.
   // Report only a known component name; never expose the stack itself.
@@ -44,10 +61,10 @@ function safeFailureArea(componentStack: string | null | undefined) {
 }
 
 export class AppRecoveryBoundary extends Component<Props, State> {
-  state: State = { failed: false, recoveryFailed: false, failureArea: "", errorKind: "" };
+  state: State = { failed: false, recoveryFailed: false, failureArea: "", errorKind: "", errorDetail: "" };
 
   static getDerivedStateFromError(error: Error): State {
-    return { failed: true, recoveryFailed: false, failureArea: "", errorKind: safeErrorKind(error) };
+    return { failed: true, recoveryFailed: false, failureArea: "", errorKind: safeErrorKind(error), errorDetail: safeErrorDetail(error) };
   }
 
   componentDidCatch(_error: Error, info: ErrorInfo) {
@@ -56,7 +73,7 @@ export class AppRecoveryBoundary extends Component<Props, State> {
     this.setState({ failureArea: safeFailureArea(info.componentStack) });
   }
 
-  private retry = () => this.setState({ failed: false, recoveryFailed: false, failureArea: "", errorKind: "" });
+  private retry = () => this.setState({ failed: false, recoveryFailed: false, failureArea: "", errorKind: "", errorDetail: "" });
 
   private reload = async () => {
     try {
@@ -80,8 +97,8 @@ export class AppRecoveryBoundary extends Component<Props, State> {
       <Pressable accessibilityLabel="Reload the 3Bigha app" accessibilityRole="button" onPress={() => void this.reload()} style={styles.secondary}><Text style={styles.secondaryText}>Reload app</Text></Pressable>
       {this.state.recoveryFailed ? <Text accessibilityLiveRegion="polite" style={styles.warning}>Automatic reload is unavailable. Close and reopen 3Bigha when convenient.</Text> : null}
       <Text style={styles.meta}>Build {Application.nativeBuildVersion || "unknown"} · Version {version} · {channel}</Text>
-      {this.state.failureArea ? <Text accessibilityLabel="Safe diagnostic details" style={styles.note}>Diagnostic: {this.state.failureArea} · {this.state.errorKind}</Text> : null}
-      <Text style={styles.note}>No personal details, access tokens, raw error messages or stack traces are shown or stored here.</Text>
+      {this.state.failureArea ? <Text accessibilityLabel="Safe diagnostic details" style={styles.note}>Diagnostic: {this.state.failureArea} · {this.state.errorKind}{this.state.errorDetail ? ` · ${this.state.errorDetail}` : ""}</Text> : null}
+      <Text style={styles.note}>No personal details, access tokens, raw error messages or stack traces are shown or stored here. Only an allowlisted code property hint is shown.</Text>
     </View></SafeAreaView>;
   }
 }
