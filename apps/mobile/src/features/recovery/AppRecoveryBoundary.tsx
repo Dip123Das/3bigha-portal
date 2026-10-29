@@ -42,7 +42,7 @@ function safeErrorDetail(error: Error) {
     /\.([A-Za-z_$][\w$]*) is not a function/,
   ];
   for (const pattern of patterns) {
-    const match = error.message.match(pattern);
+    const match = String(error).match(pattern);
     if (match?.[1]) return pattern.source.includes("is not a function")
       ? `${match[1]} is not callable`
       : `reading \"${match[1]}\"`;
@@ -98,7 +98,7 @@ export class AppRecoveryBoundary extends Component<Props, State> {
       {this.state.recoveryFailed ? <Text accessibilityLiveRegion="polite" style={styles.warning}>Automatic reload is unavailable. Close and reopen 3Bigha when convenient.</Text> : null}
       <Text style={styles.meta}>Build {Application.nativeBuildVersion || "unknown"} · Version {version} · {channel}</Text>
       {this.state.failureArea ? <Text accessibilityLabel="Safe diagnostic details" style={styles.note}>Diagnostic: {this.state.failureArea} · {this.state.errorKind}{this.state.errorDetail ? ` · ${this.state.errorDetail}` : ""}</Text> : null}
-      <Text style={styles.note}>Only an allowlisted code property hint is shown. Personal details, raw error messages and stack traces are never shown or stored.</Text>
+      <Text style={styles.note}>No personal details, access tokens, raw error messages or stack traces are shown or stored here. Only an allowlisted code property hint is shown.</Text>
     </View></SafeAreaView>;
   }
 }
