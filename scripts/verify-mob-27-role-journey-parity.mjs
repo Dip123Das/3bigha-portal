@@ -32,7 +32,19 @@ assert.match(bootstrap, /canonical\.navigationProjection\.map/);
 assert.match(bootstrap, /key: item\.key/);
 assert.match(bootstrap, /webPath: item\.href/);
 assert.match(dashboard, /data\.navigation\.items\.map/);
-assert.match(dashboard, /Linking\.openURL\(canonicalWebUrl\(item\.webPath\)\)/);
+assert.match(dashboard, /WebBrowser\.openBrowserAsync\(canonicalWebUrl\(path\)\)/);
+for (const destination of [
+  'path: "/property"',
+  'path: "/materials"',
+  'path: "/services"',
+  'path: "/rentals"',
+  'path: "/market-rfq"',
+  'path: "/land-area-calculator"',
+  'path: "/construction-cost"',
+  'path: "/emi-calculator"',
+]) assert.ok(dashboard.includes(destination), `Mobile portal destination is missing: ${destination}`);
+assert.match(dashboard, /Explore as a customer independently of your business role/);
+assert.match(dashboard, /Marketplace · Tools · Your Work/);
 
 assert.match(legalDocuments, /const BUCKET = "property-documents-private"/);
 assert.match(legalDocuments, /session\.auth\.getUser\(\)/);

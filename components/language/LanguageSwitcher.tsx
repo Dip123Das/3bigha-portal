@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { i18nConfig, type Locale } from "@/lib/i18n/config";
 
@@ -53,6 +53,27 @@ export default function LanguageSwitcher() {
 
   const activeLocale = useMemo(() => getCurrentLocale(pathname || "/"), [pathname]);
   const [selectedLocale, setSelectedLocale] = useState<Locale>(activeLocale);
+  const [translationError, setTranslationError] = useState(false);
+
+  useEffect(() => {
+    setSelectedLocale(activeLocale);
+    setTranslationError(false);
+  }, [activeLocale]);
+
+  useEffect(() => {
+    const onError = (event: Event) => {
+      if ((event as CustomEvent<{ locale?: string }>).detail?.locale === activeLocale) setTranslationError(true);
+    };
+    const onReady = (event: Event) => {
+      if ((event as CustomEvent<{ locale?: string }>).detail?.locale === activeLocale) setTranslationError(false);
+    };
+    window.addEventListener("3bigha:translation-error", onError);
+    window.addEventListener("3bigha:translation-ready", onReady);
+    return () => {
+      window.removeEventListener("3bigha:translation-error", onError);
+      window.removeEventListener("3bigha:translation-ready", onReady);
+    };
+  }, [activeLocale]);
 
   function changeLanguage(nextLocale: Locale) {
     setSelectedLocale(nextLocale);
@@ -116,6 +137,11 @@ export default function LanguageSwitcher() {
           </option>
         ))}
       </select>
+      {translationError ? (
+        <span role="status" style={{ marginLeft: 8, alignSelf: "center", color: "#8b3b24", fontSize: 12 }}>
+          Translation is temporarily unavailable; English is shown.
+        </span>
+      ) : null}
     </div>
   );
 }
