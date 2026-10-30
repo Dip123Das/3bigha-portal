@@ -6,7 +6,8 @@
     "dev": "set NODE_OPTIONS=--dns-result-order=ipv4first && next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "lint": "next lint"
+    "lint": "next lint",
+    "verify:portal-language-geography": "node scripts/verify-portal-language-geography.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",

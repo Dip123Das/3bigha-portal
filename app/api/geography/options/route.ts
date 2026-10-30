@@ -3,10 +3,11 @@ import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = supabaseUrl && serviceRoleKey
+  ? createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } })
+  : null;
 
 function clean(value: string | null) {
   return String(value || "").trim();
@@ -24,6 +25,12 @@ function pagedResponse(data: any[] | null, limit: number, offset: number) {
 }
 
 export async function GET(req: Request) {
+  if (!supabase) {
+    return NextResponse.json(
+      { options: [], hasMore: false, error: "Official location data is temporarily unavailable." },
+      { status: 503 }
+    );
+  }
   const { searchParams } = new URL(req.url);
   const type = clean(searchParams.get("type"));
   const stateId = clean(searchParams.get("stateId"));
@@ -423,9 +430,13 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ options: [], hasMore: false, nextOffset: offset });
   } catch (error: any) {
+    console.error("[geography/options] LGD lookup failed", {
+      type,
+      code: typeof error?.code === "string" ? error.code : undefined,
+    });
     return NextResponse.json(
-      { options: [], hasMore: false, nextOffset: offset, error: error?.message || "Failed" },
-      { status: 500 }
+      { options: [], hasMore: false, nextOffset: offset, error: "Official location data could not be loaded. Please retry." },
+      { status: 503 }
     );
   }
 }

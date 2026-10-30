@@ -120,7 +120,10 @@ async function loadOptions(
   url.searchParams.set("offset", String(merged.offset));
 
   const res = await fetch(url.toString(), { cache: "no-store", signal });
-  const json = await res.json();
+  const json = await res.json().catch(() => null);
+  if (!res.ok || !json || !Array.isArray(json.options)) {
+    throw new Error("Location data could not be loaded. Please retry.");
+  }
 
   const response: GeoApiResponse = {
     options: Array.isArray(json.options) ? json.options : [],
@@ -129,6 +132,8 @@ async function loadOptions(
       typeof json.nextOffset === "number" ? json.nextOffset : undefined,
   };
 
+  // Cache only valid responses. A transient API or database error must not
+  // turn into a permanent empty location list for this browser session.
   optionCache.set(key, response);
   return response;
 }
@@ -165,6 +170,7 @@ function SearchableGeoSelect({
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const parentKey = JSON.stringify(params || {});
@@ -181,6 +187,7 @@ function SearchableGeoSelect({
 
     try {
       setLoading(true);
+      setLoadError(null);
 
       const result = await loadOptions(
         type,
@@ -202,6 +209,7 @@ function SearchableGeoSelect({
       if (error?.name !== "AbortError") {
         setOptions([]);
         setHasMore(false);
+        setLoadError(error instanceof Error ? error.message : "Location data could not be loaded. Please retry.");
       }
     } finally {
       setLoading(false);
@@ -213,6 +221,7 @@ function SearchableGeoSelect({
     setOptions([]);
     setOffset(0);
     setHasMore(false);
+    setLoadError(null);
   }, [type, parentKey]);
 
   useEffect(() => {
@@ -329,7 +338,14 @@ function SearchableGeoSelect({
           ))}
 
           {!loading && options.length === 0 ? (
-            <div className="geoEmpty">No result found</div>
+            <div className="geoEmpty" role={loadError ? "alert" : undefined}>
+              {loadError || "No result found"}
+              {loadError ? (
+                <button type="button" className="geoLoadMore" onClick={() => fetchPage(true)}>
+                  Retry
+                </button>
+              ) : null}
+            </div>
           ) : null}
 
           {loading ? <div className="geoEmpty">Loading...</div> : null}

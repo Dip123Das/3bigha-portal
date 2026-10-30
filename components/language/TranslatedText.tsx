@@ -46,9 +46,12 @@ export default function TranslatedText({ text }: { text: string }) {
         });
 
         const json = await res.json();
-        const next = json?.translatedText || text;
+        if (!res.ok || json?.ok !== true || typeof json.translatedText !== "string") {
+          throw new Error("Translation service unavailable");
+        }
+        const next = json.translatedText.trim() || text;
 
-        cache.set(key, next);
+        if (next !== text) cache.set(key, next);
 
         if (!cancelled) {
           setTranslated(next);
