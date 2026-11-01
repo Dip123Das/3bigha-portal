@@ -5,10 +5,6 @@ import type {
   MobilePropertyBookingAdvanceStatus,
   MobilePropertyBookingAdvanceWorkspace,
 } from "@/lib/mobile/contracts/v1";
-import {
-  SBI_GATEWAY_PROVIDER,
-  SBI_INTEGRATION_READY,
-} from "@/lib/payments/sbi";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { buildMobilePropertyBookingApplicationWorkspace } from "./property-booking-application";
 
@@ -98,6 +94,8 @@ function isAdvanceStatus(
     "gateway_order_created",
     "payment_pending",
     "paid",
+    "refund_pending",
+    "refunded",
     "failed",
     "expired",
     "cancelled",
@@ -134,7 +132,7 @@ function mapAdvance(row: Row): MobilePropertyBookingAdvance {
     quotedPropertyPricePaise,
     advanceAmountPaise,
     currency: "INR",
-    provider: SBI_GATEWAY_PROVIDER,
+    provider: "razorpay_route",
     pricingSource: "builder_inventory_pricing",
     pricingSnapshotAt: clean(row.pricing_snapshot_at),
     ownerTermsNote: nullableText(row.owner_terms_note),
@@ -300,6 +298,122 @@ export async function buildMobilePropertyBookingAdvanceWorkspace(input: {
 
   const privateRow = result.data as Row | null;
   const advance = privateRow ? mapAdvance(privateRow) : null;
+  const paymentResult = advance
+    ? await admin
+        .from("property_unit_booking_advance_payments")
+        .select(
+          "status,amount_paise,refund_amount_paise,refunded_at,buyer_completion_confirmed_at,owner_completion_confirmed_at,settlement_release_requested_at,settlement_released_at,settled_at",
+        )
+        .eq("advance_request_id", advance.id)
+        .maybeSingle()
+    : { data: null, error: null };
+
+  if (paymentResult.error) {
+    throw new MobilePropertyBookingAdvanceError(
+      500,
+      "ADVANCE_WORKSPACE_FAILED",
+      "The private Razorpay Route payment status could not be loaded.",
+    );
+  }
+
+  const paymentRow = paymentResult.data as Row | null;
+  const paymentStatus = paymentRow ? clean(paymentRow.status) : null;
+  const paymentStatuses = new Set([
+    "order_preparing",
+    "payment_pending",
+    "paid_held",
+    "refund_pending",
+    "refunded",
+    "settlement_release_pending",
+    "settled",
+    "failed",
+    "review_required",
+  ]);
+  const paymentAmount = paymentRow ? Number(paymentRow.amount_paise) : 0;
+  const refundAmount = paymentRow
+    ? Number(paymentRow.refund_amount_paise)
+    : 0;
+
+  if (
+    paymentRow &&
+    (!paymentStatus ||
+      !paymentStatuses.has(paymentStatus) ||
+      !Number.isSafeInteger(paymentAmount) ||
+      paymentAmount <= 0 ||
+      !Number.isSafeInteger(refundAmount) ||
+      refundAmount < 0)
+  ) {
+    throw new MobilePropertyBookingAdvanceError(
+      500,
+      "ADVANCE_WORKSPACE_FAILED",
+      "The private Razorpay Route payment record is invalid.",
+    );
+  }
+
+  const routeAccountResult = privateRow
+    ? await admin
+        .from("property_seller_razorpay_route_accounts")
+        .select("status,details_submitted,transfers_enabled,settlements_enabled,provider_live,provider_activated_at,last_verified_at,disabled_at")
+        .eq("owner_user_id", privateRow.owner_user_id)
+        .maybeSingle()
+    : { data: null, error: null };
+
+  if (routeAccountResult.error) {
+    throw new MobilePropertyBookingAdvanceError(
+      500,
+      "ADVANCE_WORKSPACE_FAILED",
+      "Seller payment readiness could not be loaded.",
+    );
+  }
+
+  const sellerAccountStatus = clean(routeAccountResult.data?.status);
+  const validSellerStatus = new Set([
+    "onboarding_pending",
+    "review_pending",
+    "active",
+    "disabled",
+  ]);
+  if (sellerAccountStatus && !validSellerStatus.has(sellerAccountStatus)) {
+    throw new MobilePropertyBookingAdvanceError(
+      500,
+      "ADVANCE_WORKSPACE_FAILED",
+      "Seller payment readiness is invalid.",
+    );
+  }
+  const normalizedSellerAccountStatus:
+    MobilePropertyBookingAdvanceWorkspace["gateway"]["sellerAccountStatus"] =
+      sellerAccountStatus
+        ? sellerAccountStatus as MobilePropertyBookingAdvanceWorkspace["gateway"]["sellerAccountStatus"]
+        : "not_configured";
+  const keyId = process.env.RAZORPAY_KEY_ID || "";
+  const keySecret = process.env.RAZORPAY_KEY_SECRET || "";
+  const keyModeConfigured =
+    (keyId.startsWith("rzp_test_") &&
+      process.env.RAZORPAY_TEST_PAYMENTS_ENABLED === "true") ||
+    (keyId.startsWith("rzp_live_") &&
+      process.env.RAZORPAY_LIVE_TAX_CONFIRMED === "true");
+  const providerConfigured =
+    process.env.RAZORPAY_ENABLED === "true" &&
+    process.env.RAZORPAY_ROUTE_ENABLED === "true" &&
+    process.env.RAZORPAY_PROPERTY_ADVANCE_PAYMENTS_ENABLED === "true" &&
+    process.env.RAZORPAY_PROPERTY_ADVANCE_REFUNDS_ENABLED === "true" &&
+    process.env.RAZORPAY_PROPERTY_ADVANCE_SETTLEMENTS_ENABLED === "true" &&
+    Boolean(keyId && keySecret && process.env.RAZORPAY_WEBHOOK_SECRET) &&
+    keyModeConfigured;
+  const verifiedAt = Date.parse(
+    clean(routeAccountResult.data?.last_verified_at),
+  );
+  const gatewayReady =
+    providerConfigured &&
+    normalizedSellerAccountStatus === "active" &&
+    routeAccountResult.data?.details_submitted === true &&
+    routeAccountResult.data?.transfers_enabled === true &&
+    routeAccountResult.data?.settlements_enabled === true &&
+    routeAccountResult.data?.provider_live === true &&
+    Boolean(routeAccountResult.data?.provider_activated_at) &&
+    Number.isFinite(verifiedAt) &&
+    verifiedAt >= Date.now() - 10 * 60 * 1000 &&
+    routeAccountResult.data?.disabled_at === null;
   const application = applicationWorkspace.application;
   const actor =
     privateRow?.owner_user_id === userId
@@ -317,12 +431,37 @@ export async function buildMobilePropertyBookingAdvanceWorkspace(input: {
     advance?.status === "owner_proposed" ||
     advance?.status === "buyer_confirmed" ||
     advance?.status === "gateway_configuration_pending";
+  const payment = paymentRow && paymentStatus
+    ? {
+        status: paymentStatus,
+        amountPaise: paymentAmount,
+        refundAmountPaise: refundAmount,
+        refundedAt: nullableText(paymentRow.refunded_at),
+        buyerCompletionConfirmedAt: nullableText(
+          paymentRow.buyer_completion_confirmed_at,
+        ),
+        ownerCompletionConfirmedAt: nullableText(
+          paymentRow.owner_completion_confirmed_at,
+        ),
+        settlementReleaseRequestedAt: nullableText(
+          paymentRow.settlement_release_requested_at,
+        ),
+        settlementReleasedAt: nullableText(
+          paymentRow.settlement_released_at,
+        ),
+        settledAt: nullableText(paymentRow.settled_at),
+      }
+    : null;
+  const completionOpen =
+    payment?.status === "paid_held" ||
+    payment?.status === "review_required";
 
   return {
     generatedAt: new Date().toISOString(),
     unit: applicationWorkspace.unit,
     application,
     advance,
+    payment,
     permissions: {
       actor,
       canProposeAdvance:
@@ -339,14 +478,40 @@ export async function buildMobilePropertyBookingAdvanceWorkspace(input: {
         beforeGateway &&
         (advance?.remainingSeconds ?? 0) > 0,
       canViewAdvance: advance !== null,
-      canCreateGatewayOrder: false,
+      canCreateGatewayOrder:
+        actor === "buyer" &&
+        acceptedApplication &&
+        advance !== null &&
+        (advance?.status === "buyer_confirmed" ||
+          (advance?.status === "payment_pending" &&
+            payment?.status === "payment_pending")) &&
+        advance.remainingSeconds > 0 &&
+        gatewayReady,
+      canRequestFullRefund:
+        actor === "buyer" &&
+        (payment?.status === "paid_held" ||
+          payment?.status === "review_required") &&
+        payment.settlementReleaseRequestedAt === null &&
+        payment.settledAt === null &&
+        payment.refundedAt === null &&
+        !(
+          payment.buyerCompletionConfirmedAt !== null &&
+          payment.ownerCompletionConfirmedAt !== null
+        ),
+      canConfirmDealCompletion:
+        completionOpen &&
+        ((actor === "buyer" &&
+          payment?.buyerCompletionConfirmedAt === null) ||
+          (actor === "owner" &&
+            payment?.ownerCompletionConfirmedAt === null)),
     },
     gateway: {
-      provider: SBI_GATEWAY_PROVIDER,
-      readiness: SBI_INTEGRATION_READY
+      provider: "razorpay_route",
+      readiness: gatewayReady
         ? "ready"
         : "configuration_pending",
-      configured: SBI_INTEGRATION_READY,
+      configured: gatewayReady,
+      sellerAccountStatus: normalizedSellerAccountStatus,
     },
     policy: {
       consentVersion:
@@ -354,12 +519,15 @@ export async function buildMobilePropertyBookingAdvanceWorkspace(input: {
       requiresAcceptedApplication: true,
       requiresReservedInventory: true,
       usesServerOwnedPropertyPrice: true,
-      createsGatewayOrder: false,
-      collectsMoney: false,
+      createsGatewayOrder: true,
+      collectsMoney: true,
       createsAgreement: false,
       marksInventorySold: false,
       transfersTitle: false,
       transfersOwnership: false,
+      sellerDirectPayment: true,
+      buyerFullRefundOnCancellation: true,
+      sellerSettlementHeldUntilDealCompletion: true,
     },
   };
 }
