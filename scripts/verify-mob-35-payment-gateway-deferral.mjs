@@ -12,6 +12,7 @@ const client = read(
 const screen = read(
   "apps/mobile/src/features/property/PropertyBookingAdvanceScreen.tsx",
 );
+const packageJson = read("apps/mobile/package.json");
 
 const withdrawnDrafts = [
   "supabase/migrations/20260923100000_mob_35_property_booking_advance_gateway_attempts.sql",
@@ -29,21 +30,28 @@ for (const path of withdrawnDrafts) {
   );
 }
 
-for (const source of [authority, client]) {
-  assert.match(source, /createsGatewayOrder: false/);
-  assert.match(source, /collectsMoney: false/);
-  assert.doesNotMatch(
-    source,
-    /createPayment\s*\(|capturePayment\s*\(|executePayment\s*\(|createGatewayOrder\s*\(|verifyGatewaySignature\s*\(|gatewaySecret|merchantSecret/i,
-  );
-}
-
-assert.match(screen, /gateway-order creation remains disabled/i);
+assert.match(authority, /canCreateGatewayOrder:[\s\S]*?actor === "buyer"/);
+assert.match(authority, /gatewayReady/);
+assert.match(authority, /createsGatewayOrder: true/);
+assert.match(authority, /collectsMoney: true/);
+assert.match(authority, /sellerDirectPayment: true/);
+assert.match(authority, /buyerFullRefundOnCancellation: true/);
+assert.match(authority, /sellerSettlementHeldUntilDealCompletion: true/);
+assert.doesNotMatch(
+  client,
+  /RAZORPAY_KEY_SECRET|RAZORPAY_WEBHOOK_SECRET|gatewaySecret|merchantSecret|verifyGatewaySignature\s*\(/i,
+);
+assert.match(packageJson, /"react-native-razorpay": "3\.0\.0"/);
+assert.match(screen, /RazorpayCheckout\.open/);
+assert.match(screen, /createPropertyBookingAdvanceOrder/);
+assert.match(screen, /verifyPropertyBookingAdvancePayment/);
+assert.match(screen, /requestPropertyBookingAdvanceRefund/);
+assert.match(screen, /confirmPropertyBookingDealCompletion/);
 assert.doesNotMatch(
   screen,
-  /WebBrowser|Linking\.openURL|createPayment\s*\(|capturePayment\s*\(|createGatewayOrder\s*\(/,
+  /WebBrowser|Linking\.openURL|RAZORPAY_KEY_SECRET|RAZORPAY_WEBHOOK_SECRET/,
 );
 
 console.log(
-  "MOB-35 postponed payment-gateway execution and provider-draft withdrawal assertions passed.",
+  "MOB-35 provider-specific draft withdrawal and Razorpay Route native-checkout assertions passed.",
 );
