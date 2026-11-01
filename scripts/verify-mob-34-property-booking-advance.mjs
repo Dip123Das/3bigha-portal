@@ -51,6 +51,18 @@ const confirmRoute = read(
 const cancelRoute = read(
   "app/api/v1/mobile/property-booking-advance/[advanceRequestId]/cancel/route.ts",
 );
+const orderRoute = read(
+  "app/api/v1/mobile/property-booking-advance/[advanceRequestId]/order/route.ts",
+);
+const verifyPaymentRoute = read(
+  "app/api/v1/mobile/property-booking-advance/[advanceRequestId]/verify/route.ts",
+);
+const refundRoute = read(
+  "app/api/v1/mobile/property-booking-advance/[advanceRequestId]/refund/route.ts",
+);
+const completionRoute = read(
+  "app/api/v1/mobile/property-booking-advance/[advanceRequestId]/completion/route.ts",
+);
 const client = read(
   "apps/mobile/src/features/property/booking-advance-api.ts",
 );
@@ -238,8 +250,11 @@ for (const value of [
 
 for (const value of [
   "usesServerOwnedPropertyPrice: true",
-  "createsGatewayOrder: false",
-  "collectsMoney: false",
+  "canCreateGatewayOrder: boolean",
+  "canRequestFullRefund: boolean",
+  "canConfirmDealCompletion: boolean",
+  "createsGatewayOrder: true",
+  "collectsMoney: true",
   "createsAgreement: false",
   "marksInventorySold: false",
   "transfersTitle: false",
@@ -264,22 +279,58 @@ for (const value of [
   "propose_property_unit_booking_advance",
   "confirm_property_unit_booking_advance",
   "cancel_property_unit_booking_advance",
-  "SBI_GATEWAY_PROVIDER",
-  "SBI_INTEGRATION_READY",
+  "RAZORPAY_KEY_ID",
+  "RAZORPAY_PROPERTY_ADVANCE_PAYMENTS_ENABLED",
+  "RAZORPAY_PROPERTY_ADVANCE_REFUNDS_ENABLED",
+  "RAZORPAY_PROPERTY_ADVANCE_SETTLEMENTS_ENABLED",
 ]) {
   assert.match(authority, new RegExp(value));
 }
 
 for (const value of [
-  "createsGatewayOrder: false",
-  "collectsMoney: false",
+  "canCreateGatewayOrder:",
+  'actor === "buyer"',
+  'advance\\?\\.status === "buyer_confirmed"',
+  "gatewayReady",
+  "canRequestFullRefund:",
+  "canConfirmDealCompletion:",
+  'provider: "razorpay_route"',
+  "createsGatewayOrder: true",
+  "collectsMoney: true",
   "createsAgreement: false",
   "marksInventorySold: false",
   "transfersTitle: false",
   "transfersOwnership: false",
+  "buyerFullRefundOnCancellation: true",
+  "sellerSettlementHeldUntilDealCompletion: true",
 ]) {
   assert.match(authority, new RegExp(value));
 }
+
+for (const paymentRoute of [
+  orderRoute,
+  verifyPaymentRoute,
+  refundRoute,
+  completionRoute,
+]) {
+  assert.match(paymentRoute, /authenticateMobileRequest\(request\)/);
+  assert.match(paymentRoute, /private, no-store, max-age=0/);
+  assert.match(paymentRoute, /Cookie, Authorization/);
+}
+
+assert.match(orderRoute, /prepare_property_unit_booking_advance_payment/);
+assert.match(orderRoute, /RAZORPAY_PROPERTY_ADVANCE_PAYMENTS_ENABLED/);
+assert.match(orderRoute, /transfers:[\s\S]*?on_hold: true/);
+assert.match(orderRoute, /seller_linked_account_id/);
+assert.match(verifyPaymentRoute, /validCheckoutSignature/);
+assert.match(verifyPaymentRoute, /payment\.status !== "captured"/);
+assert.match(verifyPaymentRoute, /record_property_advance_payment_capture/);
+assert.match(refundRoute, /begin_property_advance_full_refund/);
+assert.match(refundRoute, /reverse_all: true/);
+assert.match(refundRoute, /complete_property_advance_full_refund/);
+assert.match(completionRoute, /confirm_property_advance_deal_completion/);
+assert.match(completionRoute, /transfers\.edit\(transferId, \{ on_hold: false \}\)/);
+assert.match(completionRoute, /record_property_advance_settled/);
 
 assert.match(
   authority,
@@ -364,6 +415,10 @@ for (const value of [
   "proposePropertyBookingAdvance",
   "confirmPropertyBookingAdvance",
   "cancelPropertyBookingAdvance",
+  "createPropertyBookingAdvanceOrder",
+  "verifyPropertyBookingAdvancePayment",
+  "requestPropertyBookingAdvanceRefund",
+  "confirmPropertyBookingDealCompletion",
   "advanceAmountPaise",
   "consentAccepted: true",
 ]) {
@@ -384,9 +439,15 @@ for (const value of [
   "Proposed advance",
   "Confirm advance readiness",
   "Cancel advance request",
-  "SBI payment gateway readiness",
-  "No payment action is available",
-  "creates no gateway order",
+  "Razorpay Route readiness",
+  "Pay with Razorpay",
+  "Razorpay payment status",
+  "Request full refund",
+  "Confirm deal completion",
+  "createPropertyBookingAdvanceOrder",
+  "verifyPropertyBookingAdvancePayment",
+  "requestPropertyBookingAdvanceRefund",
+  "confirmPropertyBookingDealCompletion",
 ]) {
   assert.match(advanceScreen, new RegExp(value));
 }

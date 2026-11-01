@@ -2,6 +2,7 @@ import type { Session } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -11,13 +12,18 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import RazorpayCheckout from "react-native-razorpay";
 
 import { colors, radii, spacing, typography } from "@/theme/tokens";
 import {
   cancelPropertyBookingAdvance,
   confirmPropertyBookingAdvance,
+  createPropertyBookingAdvanceOrder,
+  confirmPropertyBookingDealCompletion,
   loadPropertyBookingAdvance,
   proposePropertyBookingAdvance,
+  requestPropertyBookingAdvanceRefund,
+  verifyPropertyBookingAdvancePayment,
   type PropertyBookingAdvanceWorkspace,
 } from "./booking-advance-api";
 
@@ -297,6 +303,133 @@ export function PropertyBookingAdvanceScreen({
     }
   }
 
+  async function checkout() {
+    const advance = workspace?.advance;
+    if (!advance || !workspace?.permissions.canCreateGatewayOrder) return;
+
+    setBusy(true);
+    setMessage(null);
+    try {
+      const order = await createPropertyBookingAdvanceOrder(session, {
+        advanceRequestId: advance.id,
+        // Stable per advance so an interrupted checkout safely reuses its order.
+        idempotencyKey: advance.id,
+      });
+      const result = await RazorpayCheckout.open({
+        key: order.keyId,
+        order_id: order.orderId,
+        amount: String(order.amountPaise),
+        currency: order.currency,
+        name: "3Bigha",
+        description: "Property booking advance",
+        theme: { color: colors.brand },
+      });
+      await verifyPropertyBookingAdvancePayment(session, {
+        advanceRequestId: advance.id,
+        ...result,
+      });
+      setWorkspace(await loadPropertyBookingAdvance(session, unitId));
+      setMessage(
+        "Razorpay confirmed the advance payment. The seller settlement remains held until both parties confirm deal completion.",
+      );
+    } catch (error) {
+      try {
+        setWorkspace(await loadPropertyBookingAdvance(session, unitId));
+      } catch {
+        // Keep the checkout error visible if the refreshed status is unavailable.
+      }
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Razorpay checkout did not complete. Refresh the payment status before trying again.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function requestRefund() {
+    const advance = workspace?.advance;
+    if (!advance || !workspace?.permissions.canRequestFullRefund) return;
+    Alert.alert(
+      "Request a full refund?",
+      "This asks Razorpay to refund the full advance and reverse the seller transfer. This action cannot be undone.",
+      [
+        { text: "Keep payment", style: "cancel" },
+        {
+          text: "Request full refund",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              setBusy(true);
+              setMessage(null);
+              try {
+                const result = await requestPropertyBookingAdvanceRefund(
+                  session,
+                  advance.id,
+                );
+                setWorkspace(await loadPropertyBookingAdvance(session, unitId));
+                setMessage(
+                  result.status === "refunded"
+                    ? "Razorpay confirmed the full refund."
+                    : "The refund request was submitted. Refresh the Razorpay payment status for its latest state.",
+                );
+              } catch (error) {
+                setMessage(
+                  error instanceof Error
+                    ? error.message
+                    : "The full refund could not be confirmed. Refresh payment status before retrying.",
+                );
+              } finally {
+                setBusy(false);
+              }
+            })();
+          },
+        },
+      ],
+    );
+  }
+
+  function confirmCompletion() {
+    const advance = workspace?.advance;
+    if (!advance || !workspace?.permissions.canConfirmDealCompletion) return;
+    Alert.alert(
+      "Confirm deal completion?",
+      "Your confirmation may release the seller settlement once the other party has also confirmed. Only confirm after the property deal is complete.",
+      [
+        { text: "Review later", style: "cancel" },
+        {
+          text: "Confirm deal completion",
+          onPress: () => {
+            void (async () => {
+              setBusy(true);
+              setMessage(null);
+              try {
+                const result = await confirmPropertyBookingDealCompletion(
+                  session,
+                  advance.id,
+                );
+                setWorkspace(await loadPropertyBookingAdvance(session, unitId));
+                setMessage(
+                  result.message ||
+                    "Your completion confirmation was recorded. The settlement status has been refreshed.",
+                );
+              } catch (error) {
+                setMessage(
+                  error instanceof Error
+                    ? error.message
+                    : "Deal completion could not be confirmed.",
+                );
+              } finally {
+                setBusy(false);
+              }
+            })();
+          },
+        },
+      ],
+    );
+  }
+
   if (!workspace && busy) {
     return (
       <SafeAreaView
@@ -347,8 +480,8 @@ export function PropertyBookingAdvanceScreen({
           </Text>
           <Text style={styles.heroBody}>
             The owner may propose an amount from the server-owned
-            property price. The buyer may acknowledge it before any
-            separately protected payment integration becomes available.
+            property price. The buyer may acknowledge it before the
+            separate Razorpay Route checkout step.
           </Text>
         </View>
 
@@ -475,6 +608,52 @@ export function PropertyBookingAdvanceScreen({
               </View>
             ) : null}
 
+            {workspace.payment ? (
+              <View style={styles.card}>
+                <Text accessibilityRole="header" style={styles.sectionTitle}>
+                  Razorpay payment status
+                </Text>
+                <Text style={styles.status}>
+                  {human(workspace.payment.status)}
+                </Text>
+                <Text style={styles.muted}>
+                  Amount: {money(workspace.payment.amountPaise)}
+                </Text>
+                {workspace.payment.refundedAt ? (
+                  <Text style={styles.muted}>
+                    Refunded: {dateTime(workspace.payment.refundedAt)}
+                  </Text>
+                ) : null}
+                {workspace.payment.status === "paid_held" ||
+                workspace.payment.status === "review_required" ? (
+                  <Text style={styles.muted}>
+                    Seller settlement is held until both parties confirm deal completion.
+                  </Text>
+                ) : null}
+                {workspace.payment.buyerCompletionConfirmedAt ||
+                workspace.payment.ownerCompletionConfirmedAt ? (
+                  <Text style={styles.muted}>
+                    Completion confirmations: buyer {workspace.payment.buyerCompletionConfirmedAt ? "confirmed" : "pending"}; owner {workspace.payment.ownerCompletionConfirmedAt ? "confirmed" : "pending"}.
+                  </Text>
+                ) : null}
+                {workspace.permissions.canRequestFullRefund ? (
+                  <Button
+                    danger
+                    disabled={busy}
+                    label="Request full refund"
+                    onPress={requestRefund}
+                  />
+                ) : null}
+                {workspace.permissions.canConfirmDealCompletion ? (
+                  <Button
+                    disabled={busy}
+                    label="Confirm deal completion"
+                    onPress={confirmCompletion}
+                  />
+                ) : null}
+              </View>
+            ) : null}
+
             {!advance &&
             application?.status === "accepted" &&
             workspace.permissions.actor === "owner" &&
@@ -514,8 +693,8 @@ export function PropertyBookingAdvanceScreen({
                 />
 
                 <Text style={styles.warning}>
-                  Saving this proposal does not contact SBI, create a
-                  gateway order, collect money, create an agreement, or
+                  Saving this proposal does not contact Razorpay, create
+                  a payment order, collect money, create an agreement, or
                   change ownership.
                 </Text>
 
@@ -578,6 +757,22 @@ export function PropertyBookingAdvanceScreen({
               </View>
             ) : null}
 
+            {advance && workspace.permissions.canCreateGatewayOrder ? (
+              <View style={styles.card}>
+                <Text accessibilityRole="header" style={styles.sectionTitle}>
+                  Pay property advance
+                </Text>
+                <Text style={styles.muted}>
+                  Razorpay Route will process {money(advance.advanceAmountPaise)}. The payment is routed to the verified seller account with settlement held until deal completion.
+                </Text>
+                <Button
+                  disabled={busy}
+                  label={workspace.payment?.status === "payment_pending" ? "Continue Razorpay checkout" : "Pay with Razorpay"}
+                  onPress={() => void checkout()}
+                />
+              </View>
+            ) : null}
+
             {advance &&
             workspace.permissions.actor === "buyer" &&
             workspace.permissions.canCancelAdvance ? (
@@ -602,36 +797,36 @@ export function PropertyBookingAdvanceScreen({
 
             <View style={styles.gatewayCard}>
               <Text accessibilityRole="header" style={styles.gatewayTitle}>
-                SBI payment gateway readiness
+                Razorpay Route readiness
               </Text>
               <Text style={styles.gatewayStatus}>
                 {workspace.gateway.configured
-                  ? "Configuration detected"
-                  : "Configuration pending"}
+                  ? "Platform and seller account verified"
+                  : `Readiness: ${human(workspace.gateway.sellerAccountStatus)}`}
               </Text>
               <Text style={styles.gatewayText}>
                 {workspace.gateway.configured
-                  ? "SBI configuration is detected, but gateway-order creation remains disabled in MOB-34."
-                  : "SBI payment configuration is pending. No payment action is available."}
+                  ? "Razorpay Route is active for property advances. Checkout opens in Razorpay, and the server verifies the captured payment before updating this status."
+                  : "Razorpay Route checkout requires verified platform settings and an active seller linked account."}
               </Text>
               <Text style={styles.gatewayText}>
-                This screen never requests gateway credentials and
-                provides no payment-order, payment-link, redirect, or
-                money-collection control.
+                Payment status, full refunds, and seller settlement remain
+                tied to the Razorpay ledger. Seller settlement stays held
+                until buyer and owner both confirm deal completion.
               </Text>
             </View>
 
             <View style={styles.policy}>
               <Text accessibilityRole="header" style={styles.policyTitle}>
-                Readiness only — no financial transaction
+                Payment and agreement stay separate
               </Text>
               <Text style={styles.policyText}>
-                MOB-34 records a server-priced owner proposal and buyer
-                acknowledgement only. It creates no gateway order,
-                collects no money, creates no agreement, does not mark
-                inventory sold, and transfers no title or ownership.
-                Private identities, gateway internals, and confidential
-                storage details are not exposed.
+                This step records the server-priced proposal and buyer
+                acknowledgement. Any payment is handled by Razorpay
+                Route. Payment does not make this advisory draft a final
+                agreement, mark the unit sold, or transfer title or
+                ownership. Private identities and gateway identifiers
+                are not exposed.
               </Text>
             </View>
           </>

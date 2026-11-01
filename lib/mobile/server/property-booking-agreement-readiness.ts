@@ -5,6 +5,7 @@ import type {
   MobilePropertyBookingAgreementPartyRole,
   MobilePropertyBookingAgreementPartyStatus,
   MobilePropertyBookingAgreementPartySubmission,
+  MobilePropertyBookingAgreementPrintLayoutUpdate,
   MobilePropertyBookingAgreementPrintPageSize,
   MobilePropertyBookingAgreementReadiness,
   MobilePropertyBookingAgreementReadinessCreate,
@@ -64,6 +65,10 @@ type AgreementReadinessErrorCode =
   | "READINESS_UPDATE_CONFLICT"
   | "READINESS_CANCELLATION_CONFLICT"
   | "READINESS_EXPIRED"
+  | "PRINT_LAYOUT_INPUT_INVALID"
+  | "PRINT_LAYOUT_DIMENSIONS_INVALID"
+  | "PRINT_LAYOUT_MARGINS_INVALID"
+  | "PRINT_LAYOUT_LOCKED"
   | "AGREEMENT_OPERATION_FAILED"
   | "AGREEMENT_WORKSPACE_FAILED";
 
@@ -143,7 +148,6 @@ function isReadinessStatus(
     "draft_generated",
     "parties_reviewing",
     "changes_requested",
-    "approved_for_execution",
     "cancelled",
     "expired",
   ].includes(clean(value));
@@ -301,6 +305,23 @@ function mapSchedule(
         nullableNumber(row.custom_page_width_mm),
       customPageHeightMm:
         nullableNumber(row.custom_page_height_mm),
+      stampTreatment:
+        row.stamp_treatment === "physical_stamp_paper" ||
+        row.stamp_treatment === "e_stamp"
+          ? row.stamp_treatment
+          : "not_selected",
+      firstPageTopOffsetMm:
+        nullableNumber(row.first_page_top_offset_mm) ?? 0,
+      continuationPageTopOffsetMm:
+        nullableNumber(row.continuation_page_top_offset_mm) ?? 0,
+      pageNumberingEnabled:
+        row.page_numbering_enabled !== false,
+      scheduleStartsOnNewPage:
+        row.schedule_starts_on_new_page !== false,
+      annexuresStartOnNewPage:
+        row.annexures_start_on_new_page !== false,
+      signatureWitnessOnSeparatePage:
+        row.signature_witness_on_separate_page !== false,
     },
   };
 }
@@ -398,6 +419,10 @@ function operationError(
     ["AGREEMENT_READINESS_UPDATE_CONFLICT", 409, "READINESS_UPDATE_CONFLICT", "The agreement-readiness workspace changed. Reload and try again."],
     ["AGREEMENT_CANCELLATION_CONFLICT", 409, "READINESS_CANCELLATION_CONFLICT", "The agreement-readiness workspace can no longer be cancelled here."],
     ["AGREEMENT_READINESS_EXPIRED", 409, "READINESS_EXPIRED", "The agreement-readiness workspace has expired."],
+    ["AGREEMENT_PRINT_LAYOUT_INPUT_INVALID", 400, "PRINT_LAYOUT_INPUT_INVALID", "Submit supported print layout settings."],
+    ["AGREEMENT_PRINT_LAYOUT_DIMENSIONS_INVALID", 400, "PRINT_LAYOUT_DIMENSIONS_INVALID", "Enter valid custom stamp-paper dimensions."],
+    ["AGREEMENT_PRINT_LAYOUT_MARGINS_INVALID", 400, "PRINT_LAYOUT_MARGINS_INVALID", "The print margins do not fit the selected paper size."],
+    ["AGREEMENT_PRINT_LAYOUT_LOCKED", 409, "PRINT_LAYOUT_LOCKED", "Print layout is locked after the property schedule is confirmed."],
     ["AGREEMENT_PARTY_INPUT_VERSION_INVALID", 400, "PARTY_INPUT_VERSION_INVALID", "The agreement-particulars version is outdated."],
     ["AGREEMENT_PARTY_CONSENT_REQUIRED", 400, "PARTY_CONSENT_REQUIRED", "Confirm the agreement-readiness acknowledgement."],
     ["AGREEMENT_CANCELLATION_REASON_INVALID", 400, "CANCELLATION_REASON_INVALID", "The cancellation reason must not exceed 500 characters."],
@@ -444,7 +469,8 @@ async function invokeAgreementRpc(
     | "submit_property_unit_booking_agreement_party_input"
     | "confirm_property_unit_booking_agreement_party_input"
     | "confirm_property_unit_booking_agreement_schedule"
-    | "cancel_property_unit_booking_agreement_readiness",
+    | "cancel_property_unit_booking_agreement_readiness"
+    | "update_property_unit_booking_agreement_print_layout",
   params: Record<string, unknown>,
 ) {
   const result = await getSupabaseAdmin().rpc(name, params);
@@ -664,6 +690,10 @@ export async function buildMobilePropertyBookingAgreementWorkspace(input: {
         activeReadiness &&
         buyerDetailsConfirmed &&
         ownerDetailsConfirmed &&
+        readiness?.propertyScheduleConfirmedAt === null,
+      canEditPrintLayout:
+        actor === "owner" &&
+        activeReadiness &&
         readiness?.propertyScheduleConfirmedAt === null,
       canCancelReadiness:
         readiness !== null &&
@@ -942,6 +972,104 @@ export async function cancelMobilePropertyBookingAgreementReadiness(input: {
 
   return buildMobilePropertyBookingAgreementWorkspace({
     userId: actorUserId,
+    unitId,
+  });
+}
+
+export async function updateMobilePropertyBookingAgreementPrintLayout(input: {
+  ownerUserId: string;
+  update: MobilePropertyBookingAgreementPrintLayoutUpdate;
+}) {
+  const ownerUserId = validUuid(input.ownerUserId);
+  const update = input.update;
+  const readinessId = validUuid(update.readinessId);
+  const numericValues = [
+    update.marginTopMm,
+    update.marginRightMm,
+    update.marginBottomMm,
+    update.marginLeftMm,
+    update.firstPageTopOffsetMm,
+    update.continuationPageTopOffsetMm,
+  ];
+  const validStampTreatment = [
+    "not_selected",
+    "physical_stamp_paper",
+    "e_stamp",
+  ].includes(update.stampTreatment);
+
+  if (!ownerUserId || !readinessId) {
+    throw new MobilePropertyBookingAgreementReadinessError(
+      400,
+      "READINESS_ID_INVALID",
+      "Select a valid agreement-readiness workspace.",
+    );
+  }
+  if (
+    !isPrintPageSize(update.pageSize) ||
+    !numericValues.every(Number.isFinite) ||
+    numericValues.some((value) => value < 0) ||
+    !validStampTreatment ||
+    typeof update.pageNumberingEnabled !== "boolean" ||
+    typeof update.scheduleStartsOnNewPage !== "boolean" ||
+    typeof update.annexuresStartOnNewPage !== "boolean" ||
+    typeof update.signatureWitnessOnSeparatePage !== "boolean"
+  ) {
+    throw new MobilePropertyBookingAgreementReadinessError(
+      400,
+      "PRINT_LAYOUT_INPUT_INVALID",
+      "Submit supported paper, stamp, margin, and pagination settings.",
+    );
+  }
+
+  const customDimensionsValid =
+    update.pageSize === "CUSTOM_STAMP_PAPER"
+      ? typeof update.customPageWidthMm === "number" &&
+        Number.isFinite(update.customPageWidthMm) &&
+        typeof update.customPageHeightMm === "number" &&
+        Number.isFinite(update.customPageHeightMm) &&
+        update.customPageWidthMm >= 100 &&
+        update.customPageWidthMm <= 500 &&
+        update.customPageHeightMm >= 100 &&
+        update.customPageHeightMm <= 700
+      : update.customPageWidthMm === null &&
+        update.customPageHeightMm === null;
+
+  if (!customDimensionsValid) {
+    throw new MobilePropertyBookingAgreementReadinessError(
+      400,
+      "PRINT_LAYOUT_DIMENSIONS_INVALID",
+      "Custom page dimensions must be valid and used only for custom stamp paper.",
+    );
+  }
+
+  const unitId = await invokeAgreementRpc(
+    "update_property_unit_booking_agreement_print_layout",
+    {
+      target_owner_user_id: ownerUserId,
+      target_readiness_id: readinessId,
+      target_print_page_size: update.pageSize,
+      target_margin_top_mm: update.marginTopMm,
+      target_margin_right_mm: update.marginRightMm,
+      target_margin_bottom_mm: update.marginBottomMm,
+      target_margin_left_mm: update.marginLeftMm,
+      target_custom_page_width_mm: update.customPageWidthMm,
+      target_custom_page_height_mm: update.customPageHeightMm,
+      target_stamp_treatment: update.stampTreatment,
+      target_first_page_top_offset_mm: update.firstPageTopOffsetMm,
+      target_continuation_page_top_offset_mm:
+        update.continuationPageTopOffsetMm,
+      target_page_numbering_enabled: update.pageNumberingEnabled,
+      target_schedule_starts_on_new_page:
+        update.scheduleStartsOnNewPage,
+      target_annexures_start_on_new_page:
+        update.annexuresStartOnNewPage,
+      target_signature_witness_on_separate_page:
+        update.signatureWitnessOnSeparatePage,
+    },
+  );
+
+  return buildMobilePropertyBookingAgreementWorkspace({
+    userId: ownerUserId,
     unitId,
   });
 }

@@ -5,6 +5,7 @@ import type {
   MobilePropertyBookingAgreementAdvisoryDraftContent,
   MobilePropertyBookingAgreementAdvisoryDraftStatus,
   MobilePropertyBookingAgreementAdvisoryDraftWorkspace,
+  MobilePropertyBookingAgreementDraftVersionView,
 } from "@/lib/mobile/contracts/v1";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -84,7 +85,6 @@ function isDraftStatus(
     "generated",
     "lawyer_review_pending",
     "lawyer_changes_requested",
-    "lawyer_approved",
     "superseded",
     "cancelled",
     "generation_failed",
@@ -165,7 +165,10 @@ function mapDraft(
     !projectId ||
     !version ||
     !isDraftStatus(status) ||
-    promptVersion !== "property-agreement-ai-draft-v1" ||
+    ![
+      "property-agreement-ai-draft-v1",
+      "property-agreement-ai-draft-v2",
+    ].includes(promptVersion) ||
     draftFormat !== "structured_json_v1" ||
     !createdAt ||
     !updatedAt ||
@@ -202,7 +205,6 @@ function mapDraft(
     "generated",
     "lawyer_review_pending",
     "lawyer_changes_requested",
-    "lawyer_approved",
     "superseded",
   ].includes(status);
 
@@ -237,7 +239,7 @@ function mapDraft(
     projectId,
     version,
     status,
-    promptVersion: "property-agreement-ai-draft-v1",
+    promptVersion: promptVersion as MobilePropertyBookingAgreementAdvisoryDraft["promptVersion"],
     draftFormat: "structured_json_v1",
     draftContent,
     printableText,
@@ -300,7 +302,7 @@ export async function buildMobilePropertyBookingAgreementAdvisoryDraftWorkspace(
    */
   const readinessResult = await admin
     .from("property_unit_booking_agreement_readiness")
-    .select("id")
+    .select("id,buyer_user_id,owner_user_id")
     .eq("id", readinessId)
     .or(
       "buyer_user_id.eq." +
@@ -362,8 +364,7 @@ export async function buildMobilePropertyBookingAgreementAdvisoryDraftWorkspace(
     )
     .eq("readiness_id", readinessId)
     .order("version", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(100);
 
   if (draftResult.error) {
     throw new MobilePropertyBookingAgreementDraftReadError(
@@ -373,12 +374,149 @@ export async function buildMobilePropertyBookingAgreementAdvisoryDraftWorkspace(
     );
   }
 
+  const rows = (draftResult.data ?? []) as Row[];
+  const versionRows = rows.filter((row) =>
+    [
+      "property-agreement-ai-draft-v1",
+      "property-agreement-ai-draft-v2",
+    ].includes(clean(row.prompt_version)),
+  );
+  const drafts = versionRows.map(mapDraft);
+  const currentDraft = drafts[0] ?? null;
+  const reviewsResult = await admin
+    .from("property_unit_booking_agreement_draft_party_reviews")
+    .select("draft_id,actor_user_id,actor_role,draft_content_sha256,reviewed_at")
+    .eq("readiness_id", readinessId);
+
+  if (reviewsResult.error) {
+    throw new MobilePropertyBookingAgreementDraftReadError(
+      500,
+      "AGREEMENT_DRAFT_READ_FAILED",
+      "Draft review acknowledgements could not be loaded.",
+    );
+  }
+
+  const reviewRows = (reviewsResult.data ?? []) as Row[];
+  const currentReviews = currentDraft?.draftContentSha256
+    ? reviewRows.filter(
+        (row) =>
+          row.draft_id === currentDraft.id &&
+          row.draft_content_sha256 === currentDraft.draftContentSha256,
+      )
+    : [];
+  const buyerReview = currentReviews.find(
+    (row) => row.actor_role === "buyer",
+  );
+  const ownerReview = currentReviews.find(
+    (row) => row.actor_role === "owner",
+  );
+  const myReview = currentReviews.find(
+    (row) => row.actor_user_id === userId,
+  );
+
+  const feedbackResult = currentDraft?.draftContentSha256
+    ? await admin
+        .from("property_unit_booking_agreement_draft_party_feedback")
+        .select("id,reply_to_feedback_id,actor_role,note_text,created_at")
+        .eq("readiness_id", readinessId)
+        .eq("draft_id", currentDraft.id)
+        .eq("draft_content_sha256", currentDraft.draftContentSha256)
+        .order("created_at", { ascending: true })
+        .limit(500)
+    : { data: [], error: null };
+
+  if (feedbackResult.error) {
+    throw new MobilePropertyBookingAgreementDraftReadError(
+      500,
+      "AGREEMENT_DRAFT_READ_FAILED",
+      "Party feedback could not be loaded.",
+    );
+  }
+
+  const partyFeedback = ((feedbackResult.data ?? []) as Row[]).flatMap(
+    (row) => {
+      const id = validUuid(row.id);
+      const actorRole = clean(row.actor_role);
+      const noteText = clean(row.note_text);
+      const createdAt = safeTimestamp(row.created_at);
+      const replyToFeedbackId = row.reply_to_feedback_id == null
+        ? null
+        : validUuid(row.reply_to_feedback_id);
+      if (
+        !id ||
+        (actorRole !== "buyer" && actorRole !== "owner") ||
+        !noteText ||
+        noteText.length > 2000 ||
+        !createdAt ||
+        (row.reply_to_feedback_id != null && !replyToFeedbackId)
+      ) {
+        return [];
+      }
+      return [{
+        id,
+        replyToFeedbackId,
+        actorRole: actorRole as "buyer" | "owner",
+        noteText,
+        createdAt,
+      }];
+    },
+  );
+
+  let sourceFreshness: MobilePropertyBookingAgreementAdvisoryDraftWorkspace["sourceFreshness"] =
+    "unavailable";
+  if (currentDraft) {
+    const freshnessResult = await admin.rpc(
+      "inspect_property_unit_booking_agreement_draft_sources",
+      {
+        target_actor_user_id: userId,
+        target_readiness_id: readinessId,
+        target_draft_id: currentDraft.id,
+      },
+    );
+    const freshnessData = freshnessResult.data as Row | null;
+    if (!freshnessResult.error && freshnessData?.sourceStatus === "current") {
+      sourceFreshness = "current";
+    } else if (
+      !freshnessResult.error &&
+      freshnessData?.sourceStatus === "changed"
+    ) {
+      sourceFreshness = "changed";
+    }
+  }
+
   return {
     generatedAt: new Date().toISOString(),
     readinessId,
-    draft: draftResult.data
-      ? mapDraft(draftResult.data as Row)
-      : null,
+    draft: currentDraft,
+    partyReview: {
+      buyerReviewedAt: safeTimestamp(buyerReview?.reviewed_at),
+      ownerReviewedAt: safeTimestamp(ownerReview?.reviewed_at),
+      myReviewedAt: safeTimestamp(myReview?.reviewed_at),
+    },
+    partyFeedback,
+    draftHistory: drafts.map((draft) => {
+      const versionReviews = reviewRows.filter(
+        (row) =>
+          row.draft_id === draft.id &&
+          row.draft_content_sha256 === draft.draftContentSha256,
+      );
+      return {
+        version: draft.version,
+        status: draft.status,
+        createdAt: draft.createdAt,
+        generatedAt: draft.generatedAt,
+        supersededAt: safeTimestamp(
+          versionRows.find((row) => row.id === draft.id)?.superseded_at,
+        ),
+        buyerReviewedAt: safeTimestamp(
+          versionReviews.find((row) => row.actor_role === "buyer")?.reviewed_at,
+        ),
+        ownerReviewedAt: safeTimestamp(
+          versionReviews.find((row) => row.actor_role === "owner")?.reviewed_at,
+        ),
+      };
+    }),
+    sourceFreshness,
     policy: {
       privateBoundPartyAccessOnly: true,
       confirmedParticularsOnly: true,
@@ -398,5 +536,164 @@ export async function buildMobilePropertyBookingAgreementAdvisoryDraftWorkspace(
       transfersTitle: false,
       transfersOwnership: false,
     },
+  };
+}
+
+export async function readMobilePropertyBookingAgreementDraftVersion(input: {
+  userId: string;
+  readinessId: string;
+  version: number;
+}): Promise<MobilePropertyBookingAgreementDraftVersionView> {
+  const userId = validUuid(input.userId);
+  const readinessId = validUuid(input.readinessId);
+  const version = safePositiveInteger(input.version);
+
+  if (!userId) {
+    throw new MobilePropertyBookingAgreementDraftReadError(
+      400,
+      "USER_ID_INVALID",
+      "The authenticated user reference is invalid.",
+    );
+  }
+  if (!readinessId || !version) {
+    throw new MobilePropertyBookingAgreementDraftReadError(
+      400,
+      "READINESS_ID_INVALID",
+      "Select a valid advisory-draft version.",
+    );
+  }
+
+  const admin = getSupabaseAdmin();
+  const readinessResult = await admin
+    .from("property_unit_booking_agreement_readiness")
+    .select("id,buyer_user_id,owner_user_id")
+    .eq("id", readinessId)
+    .or(`buyer_user_id.eq.${userId},owner_user_id.eq.${userId}`)
+    .maybeSingle();
+
+  if (readinessResult.error) {
+    throw new MobilePropertyBookingAgreementDraftReadError(
+      500,
+      "AGREEMENT_DRAFT_READ_FAILED",
+      "The private draft version could not be loaded.",
+    );
+  }
+  if (!readinessResult.data) {
+    throw new MobilePropertyBookingAgreementDraftReadError(
+      404,
+      "AGREEMENT_DRAFT_NOT_FOUND",
+      "The private draft version was not found.",
+    );
+  }
+
+  const projection = [
+    "id", "readiness_id", "application_id", "unit_id", "project_id",
+    "version", "status", "prompt_version", "draft_format",
+    "draft_content_json", "printable_text", "draft_content_sha256",
+    "generation_started_at", "generated_at", "generation_failed_at",
+    "generation_failure_code", "lawyer_review_required", "advisory_only",
+    "legal_effect_created", "signing_allowed", "registration_allowed",
+    "execution_allowed", "creates_payment", "marks_inventory_sold",
+    "transfers_title", "transfers_ownership", "created_at", "updated_at",
+  ].join(",");
+  const [draftResult, latestResult] = await Promise.all([
+    admin
+      .from("property_unit_booking_agreement_drafts")
+      .select(projection)
+      .eq("readiness_id", readinessId)
+      .eq("version", version)
+      .maybeSingle(),
+    admin
+      .from("property_unit_booking_agreement_drafts")
+      .select("version")
+      .eq("readiness_id", readinessId)
+      .order("version", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  if (draftResult.error || latestResult.error) {
+    throw new MobilePropertyBookingAgreementDraftReadError(
+      500,
+      "AGREEMENT_DRAFT_READ_FAILED",
+      "The private draft version could not be loaded.",
+    );
+  }
+  const draftRow = draftResult.data as Row | null;
+  if (
+    !draftRow ||
+    ![
+      "property-agreement-ai-draft-v1",
+      "property-agreement-ai-draft-v2",
+    ].includes(clean(draftRow.prompt_version))
+  ) {
+    throw new MobilePropertyBookingAgreementDraftReadError(
+      404,
+      "AGREEMENT_DRAFT_NOT_FOUND",
+      "The advisory-draft version was not found.",
+    );
+  }
+
+  const draft = mapDraft(draftRow);
+  const feedbackResult = draft.draftContentSha256
+    ? await admin
+        .from("property_unit_booking_agreement_draft_party_feedback")
+        .select("id,reply_to_feedback_id,actor_role,note_text,created_at")
+        .eq("readiness_id", readinessId)
+        .eq("draft_id", draft.id)
+        .eq("draft_content_sha256", draft.draftContentSha256)
+        .order("created_at", { ascending: true })
+        .limit(500)
+    : { data: [], error: null };
+
+  if (feedbackResult.error) {
+    throw new MobilePropertyBookingAgreementDraftReadError(
+      500,
+      "AGREEMENT_DRAFT_READ_FAILED",
+      "Feedback for this private draft version could not be loaded.",
+    );
+  }
+
+  const partyFeedback = ((feedbackResult.data ?? []) as Row[]).flatMap(
+    (row) => {
+      const id = validUuid(row.id);
+      const actorRole = clean(row.actor_role);
+      const noteText = clean(row.note_text);
+      const createdAt = safeTimestamp(row.created_at);
+      const replyToFeedbackId = row.reply_to_feedback_id == null
+        ? null
+        : validUuid(row.reply_to_feedback_id);
+      if (
+        !id ||
+        (actorRole !== "buyer" && actorRole !== "owner") ||
+        !noteText ||
+        noteText.length > 2000 ||
+        !createdAt ||
+        (row.reply_to_feedback_id != null && !replyToFeedbackId)
+      ) {
+        return [];
+      }
+      return [{
+        id,
+        replyToFeedbackId,
+        actorRole: actorRole as "buyer" | "owner",
+        noteText,
+        createdAt,
+      }];
+    },
+  );
+
+  const currentVersion = safePositiveInteger(latestResult.data?.version) ?? version;
+  return {
+    readinessId,
+    draft,
+    partyFeedback,
+    currentVersion,
+    isCurrentVersion: version === currentVersion,
+    readOnly: true,
+    legalEffectCreated: false,
+    signingAllowed: false,
+    registrationAllowed: false,
+    executionAllowed: false,
   };
 }

@@ -635,6 +635,8 @@ export type MobilePropertyBookingAdvanceStatus =
   | "gateway_order_created"
   | "payment_pending"
   | "paid"
+  | "refund_pending"
+  | "refunded"
   | "failed"
   | "expired"
   | "cancelled"
@@ -653,7 +655,7 @@ export type MobilePropertyBookingAdvance = {
   quotedPropertyPricePaise: number;
   advanceAmountPaise: number;
   currency: "INR";
-  provider: "sbi_payment_gateway";
+  provider: "razorpay_route";
   pricingSource: "builder_inventory_pricing";
   pricingSnapshotAt: string;
   ownerTermsNote: string | null;
@@ -672,7 +674,9 @@ export type MobilePropertyBookingAdvancePermissions = {
   canConfirmAdvance: boolean;
   canCancelAdvance: boolean;
   canViewAdvance: boolean;
-  canCreateGatewayOrder: false;
+  canCreateGatewayOrder: boolean;
+  canRequestFullRefund: boolean;
+  canConfirmDealCompletion: boolean;
 };
 
 export type MobilePropertyBookingAdvanceWorkspace = {
@@ -680,23 +684,43 @@ export type MobilePropertyBookingAdvanceWorkspace = {
   unit: MobilePropertyLegalReviewUnit;
   application: MobilePropertyBookingApplication | null;
   advance: MobilePropertyBookingAdvance | null;
+  payment: {
+    status: string;
+    amountPaise: number;
+    refundAmountPaise: number;
+    refundedAt: string | null;
+    buyerCompletionConfirmedAt: string | null;
+    ownerCompletionConfirmedAt: string | null;
+    settlementReleaseRequestedAt: string | null;
+    settlementReleasedAt: string | null;
+    settledAt: string | null;
+  } | null;
   permissions: MobilePropertyBookingAdvancePermissions;
   gateway: {
-    provider: "sbi_payment_gateway";
+    provider: "razorpay_route";
     readiness: MobilePropertyBookingAdvanceGatewayReadiness;
     configured: boolean;
+    sellerAccountStatus:
+      | "not_configured"
+      | "onboarding_pending"
+      | "review_pending"
+      | "active"
+      | "disabled";
   };
   policy: {
     consentVersion: "property-booking-advance-v1";
     requiresAcceptedApplication: true;
     requiresReservedInventory: true;
     usesServerOwnedPropertyPrice: true;
-    createsGatewayOrder: false;
-    collectsMoney: false;
+    createsGatewayOrder: true;
+    collectsMoney: true;
     createsAgreement: false;
     marksInventorySold: false;
     transfersTitle: false;
     transfersOwnership: false;
+    sellerDirectPayment: true;
+    buyerFullRefundOnCancellation: true;
+    sellerSettlementHeldUntilDealCompletion: true;
   };
 };
 
@@ -723,7 +747,6 @@ export type MobilePropertyBookingAgreementReadinessStatus =
   | "draft_generated"
   | "parties_reviewing"
   | "changes_requested"
-  | "approved_for_execution"
   | "cancelled"
   | "expired";
 
@@ -767,6 +790,16 @@ export type MobilePropertyBookingAgreementPrintLayout = {
   marginLeftMm: number;
   customPageWidthMm: number | null;
   customPageHeightMm: number | null;
+  stampTreatment:
+    | "not_selected"
+    | "physical_stamp_paper"
+    | "e_stamp";
+  firstPageTopOffsetMm: number;
+  continuationPageTopOffsetMm: number;
+  pageNumberingEnabled: boolean;
+  scheduleStartsOnNewPage: boolean;
+  annexuresStartOnNewPage: boolean;
+  signatureWitnessOnSeparatePage: boolean;
 };
 
 export type MobilePropertyBookingAgreementSchedule = {
@@ -862,6 +895,7 @@ export type MobilePropertyBookingAgreementPermissions = {
   canSubmitOwnDetails: boolean;
   canConfirmOwnDetails: boolean;
   canConfirmPropertySchedule: boolean;
+  canEditPrintLayout: boolean;
   canCancelReadiness: boolean;
   canViewReadiness: boolean;
   canGenerateAdvisoryDraft: false;
@@ -943,6 +977,27 @@ export type MobilePropertyBookingAgreementScheduleConfirmation = {
   readinessId: string;
 };
 
+export type MobilePropertyBookingAgreementPrintLayoutUpdate = {
+  readinessId: string;
+  pageSize: "A4" | "LEGAL" | "CUSTOM_STAMP_PAPER";
+  marginTopMm: number;
+  marginRightMm: number;
+  marginBottomMm: number;
+  marginLeftMm: number;
+  customPageWidthMm: number | null;
+  customPageHeightMm: number | null;
+  stampTreatment:
+    | "not_selected"
+    | "physical_stamp_paper"
+    | "e_stamp";
+  firstPageTopOffsetMm: number;
+  continuationPageTopOffsetMm: number;
+  pageNumberingEnabled: boolean;
+  scheduleStartsOnNewPage: boolean;
+  annexuresStartOnNewPage: boolean;
+  signatureWitnessOnSeparatePage: boolean;
+};
+
 export type MobilePropertyBookingAgreementCancellation = {
   readinessId: string;
   reason?: string | null;
@@ -953,7 +1008,6 @@ export type MobilePropertyBookingAgreementAdvisoryDraftStatus =
   | "generated"
   | "lawyer_review_pending"
   | "lawyer_changes_requested"
-  | "lawyer_approved"
   | "superseded"
   | "cancelled"
   | "generation_failed";
@@ -966,9 +1020,40 @@ export type MobilePropertyBookingAgreementAdvisoryDraftContent = {
   parties: Record<string, unknown>;
   propertySchedule: Record<string, unknown>;
   financialTerms: Record<string, unknown>;
+  annexureIndex?: Array<{
+    annexureNumber: number;
+    documentType: string;
+    referenceOnly: true;
+  }>;
+  razorpayAdvanceSnapshot?: MobilePropertyBookingAgreementRazorpayAdvanceSnapshot;
+  printLayoutSnapshot?: MobilePropertyBookingAgreementPrintLayout;
   clauses: Array<Record<string, unknown>>;
   lawyerReview: Record<string, unknown>;
   [key: string]: unknown;
+};
+
+export type MobilePropertyBookingAgreementRazorpayAdvanceSnapshot = {
+  currency: "INR";
+  advanceRequestStatus: string | null;
+  proposedAdvanceAmountPaise: number | null;
+  paymentStatus:
+    | "not_linked"
+    | "record_unavailable"
+    | "order_preparing"
+    | "payment_pending"
+    | "paid_held"
+    | "refund_pending"
+    | "refunded"
+    | "settlement_release_pending"
+    | "settled"
+    | "failed"
+    | "review_required";
+  capturedAmountPaise: number;
+  refundedAmountPaise: number;
+  netPaidAmountPaise: number;
+  capturedAt: string | null;
+  refundedAt: string | null;
+  snapshotAt: string;
 };
 
 export type MobilePropertyBookingAgreementAdvisoryDraft = {
@@ -979,7 +1064,9 @@ export type MobilePropertyBookingAgreementAdvisoryDraft = {
   projectId: string;
   version: number;
   status: MobilePropertyBookingAgreementAdvisoryDraftStatus;
-  promptVersion: "property-agreement-ai-draft-v1";
+  promptVersion:
+    | "property-agreement-ai-draft-v1"
+    | "property-agreement-ai-draft-v2";
   draftFormat: "structured_json_v1";
   draftContent:
     | MobilePropertyBookingAgreementAdvisoryDraftContent
@@ -1008,6 +1095,28 @@ export type MobilePropertyBookingAgreementAdvisoryDraftWorkspace = {
   generatedAt: string;
   readinessId: string;
   draft: MobilePropertyBookingAgreementAdvisoryDraft | null;
+  partyReview: {
+    buyerReviewedAt: string | null;
+    ownerReviewedAt: string | null;
+    myReviewedAt: string | null;
+  };
+  partyFeedback: Array<{
+    id: string;
+    replyToFeedbackId: string | null;
+    actorRole: "buyer" | "owner";
+    noteText: string;
+    createdAt: string;
+  }>;
+  draftHistory: Array<{
+    version: number;
+    status: MobilePropertyBookingAgreementAdvisoryDraftStatus;
+    createdAt: string;
+    generatedAt: string | null;
+    supersededAt: string | null;
+    buyerReviewedAt: string | null;
+    ownerReviewedAt: string | null;
+  }>;
+  sourceFreshness: "current" | "changed" | "unavailable";
   policy: {
     privateBoundPartyAccessOnly: true;
     confirmedParticularsOnly: true;
@@ -1027,6 +1136,25 @@ export type MobilePropertyBookingAgreementAdvisoryDraftWorkspace = {
     transfersTitle: false;
     transfersOwnership: false;
   };
+};
+
+export type MobilePropertyBookingAgreementDraftVersionView = {
+  readinessId: string;
+  draft: MobilePropertyBookingAgreementAdvisoryDraft;
+  partyFeedback: Array<{
+    id: string;
+    replyToFeedbackId: string | null;
+    actorRole: "buyer" | "owner";
+    noteText: string;
+    createdAt: string;
+  }>;
+  currentVersion: number;
+  isCurrentVersion: boolean;
+  readOnly: true;
+  legalEffectCreated: false;
+  signingAllowed: false;
+  registrationAllowed: false;
+  executionAllowed: false;
 };
 export type MobileTrustedMediaEntityType = "project_unit";
 
