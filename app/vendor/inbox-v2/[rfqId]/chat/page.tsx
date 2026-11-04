@@ -25,10 +25,11 @@ function digitsOnly(v?: string | null) {
 export default async function VendorRfqChatPage({
   params,
 }: {
-  params: { rfqId: string };
+  params: Promise<{ rfqId: string }>;
 }) {
-  const rfqId = decodeURIComponent(params.rfqId || "");
-  const supabase = getSupabaseServerClient(cookies());
+  const { rfqId: rawRfqId } = await params;
+  const rfqId = decodeURIComponent(rawRfqId || "");
+  const supabase = getSupabaseServerClient(await cookies());
 
   if (!UUID_RE.test(rfqId)) {
     return <div style={{ padding: 12 }}>Invalid RFQ ID</div>;

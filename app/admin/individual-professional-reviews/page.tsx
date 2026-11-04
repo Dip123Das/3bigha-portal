@@ -203,8 +203,9 @@ function EvidenceImage({
 export default async function IndividualProfessionalReviewsPage({
   searchParams,
 }: {
-  searchParams?: Params;
+  searchParams?: Promise<Params>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const access = await requireMasterAdmin();
 
   if ("error" in access) {
@@ -223,11 +224,11 @@ export default async function IndividualProfessionalReviewsPage({
 
   const { admin } = access;
 
-  const statusFilter = one(searchParams?.status);
-  const query = one(searchParams?.q)
-    .trim()
-    .toLowerCase();
-  const selectedUserId = one(searchParams?.user);
+  const statusFilter = one(resolvedSearchParams?.status);
+const query = one(resolvedSearchParams?.q)
+  .trim()
+  .toLowerCase();
+const selectedUserId = one(resolvedSearchParams?.user);
 
   let professionalQuery = admin
     .from("individual_professional_profiles")
@@ -509,7 +510,7 @@ export default async function IndividualProfessionalReviewsPage({
       <form method="get" style={filterStyle}>
         <input
           name="q"
-          defaultValue={one(searchParams?.q)}
+          defaultValue={one(resolvedSearchParams?.q)}
           placeholder="Search name, email, phone or skill"
           style={{
             ...fieldStyle,

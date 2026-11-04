@@ -5,9 +5,9 @@ import { getSupabaseServerClient } from "@/lib/supabaseServer";
 export const dynamic = "force-dynamic";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     conversationId: string;
-  };
+  }>;
 };
 
 const UUID_RE =
@@ -23,10 +23,11 @@ function cleanId(v: unknown) {
 
 export async function POST(req: Request, { params }: RouteContext) {
   try {
+    const resolvedParams = await params;
     const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
-    const conversationId = cleanId(decodeURIComponent(params.conversationId || ""));
+    const conversationId = cleanId(decodeURIComponent(resolvedParams.conversationId || ""));
 
     if (!conversationId) {
       return NextResponse.json({ error: "Missing conversationId." }, { status: 400 });

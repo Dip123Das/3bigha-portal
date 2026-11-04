@@ -67,11 +67,12 @@ function failure(error: unknown) {
 
 export async function GET(
   request: Request,
-  context: { params: { readinessId: string } },
+  context: { params: Promise<{ readinessId: string }> },
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
-    const readinessId = clean(context.params.readinessId);
+    const { readinessId: rawReadinessId } = await context.params;
+    const readinessId = clean(rawReadinessId);
 
     const workspace =
       await buildMobilePropertyBookingAgreementAdvisoryDraftWorkspace({

@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import * as XLSX from "xlsx";
-
-import { generateConstructionWorkbook } from "@/lib/construction-cost/excel-export";
+import { generateConstructionCsv } from "@/lib/construction-cost/excel-export";
 
 type Props = {
   payload: Record<string, unknown>;
@@ -27,16 +25,26 @@ export default function ExportExcelButton({ payload }: Props) {
       const json = await res.json();
 
       if (!json?.estimate) {
-        alert("Excel export failed");
+        alert("CSV export failed");
         return;
       }
 
-      const workbook = generateConstructionWorkbook(json.estimate);
+      const csv = generateConstructionCsv(json.estimate);
+      const blob = new Blob(["\uFEFF", csv], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
 
-      XLSX.writeFile(workbook, `3bigha-boq-${Date.now()}.xlsx`);
+      link.href = url;
+      link.download = `3bigha-boq-${Date.now()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (error) {
       console.error(error);
-      alert("Excel export failed");
+      alert("CSV export failed");
     } finally {
       setLoading(false);
     }
@@ -49,7 +57,7 @@ export default function ExportExcelButton({ payload }: Props) {
       disabled={loading}
       className="rounded-2xl border border-emerald-200 bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-60"
     >
-      {loading ? "Generating Excel..." : "Download BOQ Excel"}
+      {loading ? "Generating CSV..." : "Download BOQ CSV"}
     </button>
   );
 }

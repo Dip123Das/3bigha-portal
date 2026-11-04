@@ -64,7 +64,7 @@ function failure(error: unknown) {
 
 export async function PATCH(
   request: Request,
-  context: { params: { readinessId: string } },
+  context: { params: Promise<{ readinessId: string }> },
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
@@ -73,7 +73,8 @@ export async function PATCH(
           readinessId?: unknown;
         })
       | null;
-    const readinessId = String(context.params.readinessId || "").trim();
+    const { readinessId: rawReadinessId } = await context.params;
+    const readinessId = String(rawReadinessId || "").trim();
 
     if (
       !body ||

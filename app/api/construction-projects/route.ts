@@ -23,7 +23,7 @@ function toNumber(value: unknown, fallback: number): number {
 
 export async function GET() {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
     const {
@@ -67,7 +67,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
     const {

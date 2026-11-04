@@ -7,9 +7,10 @@ export const dynamic = "force-dynamic";
 const clean = (value: unknown) => String(value ?? "").trim();
 const fail = (message: string, status: number, code: string) => NextResponse.json({ ok: false, error: { code, message } }, { status });
 
-export async function GET(request: NextRequest, context: { params: { slug: string } }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   try {
-    const slug = clean(context.params.slug).toLowerCase();
+    const { slug: rawSlug } = await context.params;
+    const slug = clean(rawSlug).toLowerCase();
     if (!slug) return fail("Project slug is required.", 400, "PROJECT_SLUG_REQUIRED");
     const admin = getSupabaseAdmin();
     const projectResult = await admin.from("builder_projects")

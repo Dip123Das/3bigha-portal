@@ -31,10 +31,11 @@ function StatCard({ label, value }: { label: string; value: number }) {
 export default async function InboxPage({
   searchParams,
 }: {
-  searchParams?: { q?: string; role?: string };
+  searchParams?: Promise<{ q?: string; role?: string }>;
 }) {
-  const q = (searchParams?.q ?? "").trim();
-  const role = normalizeRole(searchParams?.role);
+  const resolvedSearchParams = await searchParams;
+  const q = (resolvedSearchParams?.q ?? "").trim();
+  const role = normalizeRole(resolvedSearchParams?.role);
 
   const res = await fetchCombinedInbox({
     q: q || undefined,

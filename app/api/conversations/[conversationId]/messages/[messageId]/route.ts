@@ -5,10 +5,10 @@ import { getSupabaseServerClient } from "@/lib/supabaseServer";
 export const dynamic = "force-dynamic";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     conversationId: string;
     messageId: string;
-  };
+  }>;
 };
 
 const UUID_RE =
@@ -92,8 +92,12 @@ export async function PATCH(req: Request, { params }: RouteContext) {
     const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
-    const conversationId = decodeURIComponent(params.conversationId || "");
-    const messageId = decodeURIComponent(params.messageId || "");
+    const {
+      conversationId: rawConversationId,
+      messageId: rawMessageId,
+    } = await params;
+    const conversationId = decodeURIComponent(rawConversationId || "");
+    const messageId = decodeURIComponent(rawMessageId || "");
 
     if (!conversationId) {
       return NextResponse.json({ error: "Missing conversationId." }, { status: 400 });
@@ -281,8 +285,12 @@ export async function DELETE(_req: Request, { params }: RouteContext) {
     const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
-    const conversationId = decodeURIComponent(params.conversationId || "");
-    const messageId = decodeURIComponent(params.messageId || "");
+    const {
+      conversationId: rawConversationId,
+      messageId: rawMessageId,
+    } = await params;
+    const conversationId = decodeURIComponent(rawConversationId || "");
+    const messageId = decodeURIComponent(rawMessageId || "");
 
     if (!conversationId) {
       return NextResponse.json({ error: "Missing conversationId." }, { status: 400 });

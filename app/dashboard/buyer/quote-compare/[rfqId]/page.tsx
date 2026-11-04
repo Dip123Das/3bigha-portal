@@ -295,10 +295,12 @@ export default async function BuyerQuoteComparePage({
   params,
   searchParams,
 }: {
-  params: { rfqId: string };
-  searchParams?: { accepted?: string };
+  params: Promise<{ rfqId: string }>;
+  searchParams?: Promise<{ accepted?: string }>;
 }) {
-  const rfqId = decodeURIComponent(params.rfqId);
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+  const rfqId = decodeURIComponent(resolvedParams.rfqId);
 
   if (!UUID_RE.test(rfqId)) {
     return (
@@ -392,7 +394,7 @@ export default async function BuyerQuoteComparePage({
     .sort((a: any, b: any) => Number(a.delivery_days) - Number(b.delivery_days));
   const fastestVendorId = byDelivery.length ? String(byDelivery[0].vendor_id) : null;
 
-  const showAcceptedBanner = String(searchParams?.accepted ?? "") === "1";
+  const showAcceptedBanner = String(resolvedSearchParams?.accepted ?? "") === "1";
 
   const aiRecommendedVendor: any =
     vendorsSorted.length > 0

@@ -121,13 +121,14 @@ async function parseIncomingRequest(req: Request): Promise<{
   };
 }
 
-export async function POST(req: Request, { params }: { params: { rfqId: string } }) {
-  const rfqId = decodeURIComponent(params.rfqId || "");
+export async function POST(req: Request, { params }: { params: Promise<{ rfqId: string }> }) {
+  const resolvedParams = await params;
+  const rfqId = decodeURIComponent(resolvedParams.rfqId || "");
   if (!UUID_RE.test(rfqId)) {
     return NextResponse.json({ error: "Invalid RFQ ID" }, { status: 400 });
   }
 
-  const supabase = getSupabaseServerClient(cookies());
+  const supabase = getSupabaseServerClient(await cookies());
 
   const {
     data: { user },

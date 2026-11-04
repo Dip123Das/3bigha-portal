@@ -151,8 +151,9 @@ async function ownerContext(unitId: string) {
   return { admin, user, unit: unit.data, project: project.data };
 }
 
-export async function GET(_request: NextRequest, context: { params: { unitId: string } }) {
-  const owned = await ownerContext(clean(context.params.unitId));
+export async function GET(_request: NextRequest, context: { params: Promise<{ unitId: string }> }) {
+  const { unitId } = await context.params;
+  const owned = await ownerContext(clean(unitId));
   if (owned.response) return owned.response;
   const { admin, unit, project } = owned;
   const [profileResult, documentsResult, linksResult] = await Promise.all([
@@ -171,8 +172,9 @@ export async function GET(_request: NextRequest, context: { params: { unitId: st
   return NextResponse.json({ ok: true, data: { unit, project, profile, documents } }, { headers: { "Cache-Control": "no-store" } });
 }
 
-export async function PUT(request: NextRequest, context: { params: { unitId: string } }) {
-  const owned = await ownerContext(clean(context.params.unitId));
+export async function PUT(request: NextRequest, context: { params: Promise<{ unitId: string }> }) {
+  const { unitId } = await context.params;
+  const owned = await ownerContext(clean(unitId));
   if (owned.response) return owned.response;
   const { admin, user, unit } = owned;
   const body = await request.json().catch(() => null);
@@ -187,8 +189,9 @@ export async function PUT(request: NextRequest, context: { params: { unitId: str
   return NextResponse.json({ ok: true, data: result.data }, { headers: { "Cache-Control": "no-store" } });
 }
 
-export async function POST(request: NextRequest, context: { params: { unitId: string } }) {
-  const owned = await ownerContext(clean(context.params.unitId));
+export async function POST(request: NextRequest, context: { params: Promise<{ unitId: string }> }) {
+  const { unitId } = await context.params;
+  const owned = await ownerContext(clean(unitId));
   if (owned.response) return owned.response;
   const { admin, user, unit } = owned;
   const form = await request.formData().catch(() => null);
@@ -231,8 +234,9 @@ export async function POST(request: NextRequest, context: { params: { unitId: st
   return NextResponse.json({ ok: true, data: { document: inserted.data, analysis } }, { status: 201, headers: { "Cache-Control": "no-store" } });
 }
 
-export async function PATCH(request: NextRequest, context: { params: { unitId: string } }) {
-  const owned = await ownerContext(clean(context.params.unitId));
+export async function PATCH(request: NextRequest, context: { params: Promise<{ unitId: string }> }) {
+  const { unitId } = await context.params;
+  const owned = await ownerContext(clean(unitId));
   if (owned.response) return owned.response;
   const { admin, user, unit } = owned;
   const body = await request.json().catch(() => null);

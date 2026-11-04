@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 
 export async function POST(req: Request) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = getSupabaseServerClient(cookieStore);
 
   const { rfqIds } = await req.json();

@@ -14,13 +14,17 @@ function wantsJson(req: Request) {
   return accept.includes("application/json") || ct.includes("application/json");
 }
 
-export async function POST(req: Request, { params }: { params: { rfqId: string } }) {
-  const rfqId = decodeURIComponent(params.rfqId || "");
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ rfqId: string }> }
+) {
+  const { rfqId: routeRfqId } = await params;
+  const rfqId = decodeURIComponent(routeRfqId || "");
   if (!UUID_RE.test(rfqId)) {
     return NextResponse.json({ error: "Invalid RFQ ID" }, { status: 400 });
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = getSupabaseServerClient(cookieStore);
 
   const { data: uData, error: uErr } = await supabase.auth.getUser();

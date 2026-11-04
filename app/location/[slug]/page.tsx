@@ -7,9 +7,9 @@ import { buildInternalLinks } from "@/lib/seo/graph/internal-link-graph";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 };
 
 type OpportunityRow = {
@@ -95,11 +95,12 @@ async function getOpportunityGroup(prefix: string, placeSlug: string) {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const location = titleCaseSlug(params.slug);
+  const { slug } = await params;
+  const location = titleCaseSlug(slug);
   const title = `Construction, Property & Vendor Marketplace in ${location} | 3Bigha`;
   const description = `Explore property, building materials, services, rentals and local vendor opportunities in ${location} on 3Bigha.`;
 
-  const canonical = `${siteConfig.url}/location/${encodeURIComponent(params.slug)}`;
+  const canonical = `${siteConfig.url}/location/${encodeURIComponent(slug)}`;
 
   return {
     title,
@@ -109,32 +110,33 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function LocationHubPage({ params }: PageProps) {
+  const { slug } = await params;
   const supabase = getSupabase();
   if (!supabase) notFound();
 
   const { data: place } = await supabase
     .from("geo_places")
     .select("id,name,slug,place_type,pincode")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .limit(1)
     .maybeSingle();
 
   if (!place) notFound();
 
-  const location = clean(place.name) || titleCaseSlug(params.slug);
+  const location = clean(place.name) || titleCaseSlug(slug);
 
-  const canonicalUrl = `${siteConfig.url}/location/${encodeURIComponent(params.slug)}`;
+  const canonicalUrl = `${siteConfig.url}/location/${encodeURIComponent(slug)}`;
 
   const internalLinks = buildInternalLinks({
-    city: params.slug,
+    city: slug,
   });
 
   const [propertyRows, materialRows, serviceRows, rentalRows] =
     await Promise.all([
-      getOpportunityGroup("property-seller", params.slug),
-      getOpportunityGroup("building-material-supplier", params.slug),
-      getOpportunityGroup("service-provider", params.slug),
-      getOpportunityGroup("rental-provider", params.slug),
+      getOpportunityGroup("property-seller", slug),
+      getOpportunityGroup("building-material-supplier", slug),
+      getOpportunityGroup("service-provider", slug),
+      getOpportunityGroup("rental-provider", slug),
     ]);
 
   return (

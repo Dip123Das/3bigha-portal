@@ -7,9 +7,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type RouteCtx = {
-  params: {
+  params: Promise<{
     billNo: string;
-  };
+  }>;
 };
 
 function money(v: unknown) {
@@ -27,13 +27,14 @@ function safeDate(v: string | null) {
 }
 
 export async function GET(_req: Request, ctx: RouteCtx) {
-  const billNo = decodeURIComponent(ctx.params.billNo || "").trim();
+  const { billNo: rawBillNo } = await ctx.params;
+  const billNo = decodeURIComponent(rawBillNo || "").trim();
 
   if (!billNo) {
     return NextResponse.json({ ok: false, error: "Bill number is required." }, { status: 400 });
   }
 
-  const supabase = getSupabaseServerClient(cookies());
+  const supabase = getSupabaseServerClient(await cookies());
 
   const { data: bill, error } = await supabase
     .from("inventory_bills")

@@ -63,7 +63,7 @@ function failure(error: unknown) {
 
 export async function POST(
   request: Request,
-  context: { params: { applicationId: string } },
+  context: { params: Promise<{ applicationId: string }> },
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
@@ -83,10 +83,11 @@ export async function POST(
       );
     }
 
+    const { applicationId } = await context.params;
     const workspace =
       await decideMobilePropertyBookingApplication({
         ownerUserId: auth.user.id,
-        applicationId: clean(context.params.applicationId),
+        applicationId: clean(applicationId),
         decision: clean(body.decision) as
           MobilePropertyBookingApplicationDecision["decision"],
         decisionNote:

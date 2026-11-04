@@ -41,16 +41,15 @@ function getPriorityColor(priority?: string | null) {
 export default async function FinanceLeadDetailPage({
   params,
 }: {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const supabase = getAdminClient();
 
   const { data: lead } = await supabase
     .from("finance_loan_leads")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (!lead) {

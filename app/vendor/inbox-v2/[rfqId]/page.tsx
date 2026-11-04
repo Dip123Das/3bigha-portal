@@ -115,10 +115,11 @@ function actionBtnStyle(kind: "talk" | "normal" | "call" = "normal"): React.CSSP
 export default async function VendorRfqDetailV2Page({
   params,
 }: {
-  params: { rfqId: string };
+  params: Promise<{ rfqId: string }>;
 }) {
-  const supabase = getSupabaseServerClient(cookies());
-  const rfqId = decodeURIComponent(params.rfqId);
+  const { rfqId: rawRfqId } = await params;
+  const supabase = getSupabaseServerClient(await cookies());
+  const rfqId = decodeURIComponent(rawRfqId);
 
   if (!UUID_RE.test(rfqId)) {
     return (

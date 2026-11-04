@@ -61,10 +61,11 @@ function canAccessDealRoom(
 
 export async function POST(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = decodeURIComponent(params?.id || "").trim();
+    const resolvedParams = await params;
+    const id = decodeURIComponent(resolvedParams.id || "").trim();
 
     if (!UUID_RE.test(id)) {
       return NextResponse.json({ error: "Invalid deal room id." }, { status: 400 });

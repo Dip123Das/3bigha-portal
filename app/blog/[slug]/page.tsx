@@ -9,9 +9,9 @@ import BlogPostClient, {
 } from "./BlogPostClient";
 
 type PageProps = {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 };
 
 export const dynamic = "force-dynamic";
@@ -120,9 +120,8 @@ function descriptionFor(post: BlogRow) {
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const post = await getPublishedPost(
-    params.slug
-  );
+  const { slug } = await params;
+  const post = await getPublishedPost(slug);
 
   if (!post) {
     notFound();
@@ -155,9 +154,8 @@ export async function generateMetadata({
 export default async function BlogPostPage({
   params,
 }: PageProps) {
-  const post = await getPublishedPost(
-    params.slug
-  );
+  const { slug } = await params;
+  const post = await getPublishedPost(slug);
 
   if (!post) {
     notFound();

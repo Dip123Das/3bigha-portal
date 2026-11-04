@@ -41,7 +41,7 @@ type VehicleRow = {
 };
 
 export async function GET() {
-  const supabase = getSupabaseServerClient(cookies());
+  const supabase = getSupabaseServerClient(await cookies());
 
   const {
     data: { user },

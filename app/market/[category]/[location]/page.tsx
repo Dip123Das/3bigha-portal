@@ -6,10 +6,10 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: {
+  params: Promise<{
     category: string;
     location: string;
-  };
+  }>;
 };
 
 function getSupabase() {
@@ -75,14 +75,15 @@ function getLocationTail(category: string, location: string) {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const category = categoryLabel(params.category);
-  const location = titleCaseSlug(params.location);
+  const { category: rawCategory, location: rawLocation } = await params;
+  const category = categoryLabel(rawCategory);
+  const location = titleCaseSlug(rawLocation);
   const title = `${category} in ${location} | 3Bigha Marketplace`;
   const description = `Find marketplace demand, vendor opportunities and local business signals for ${category} in ${location} on 3Bigha.`;
 
   const canonical = `https://3bigha.com/market/${encodeURIComponent(
-    params.category
-  )}/${encodeURIComponent(params.location)}`;
+    rawCategory
+  )}/${encodeURIComponent(rawLocation)}`;
 
   return {
     title,
@@ -99,14 +100,15 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function MarketCategoryLocationPage({ params }: PageProps) {
+  const { category: rawCategory, location: rawLocation } = await params;
   const supabase = getSupabase();
   if (!supabase) notFound();
 
-  const category = categoryLabel(params.category);
-  const location = titleCaseSlug(params.location);
+  const category = categoryLabel(rawCategory);
+  const location = titleCaseSlug(rawLocation);
   const aiContent = generateMarketContent(category, location);
-  const exactNeedSlug = marketSlugToNeedSlug(params.category, params.location);
-  const locationTail = getLocationTail(params.category, params.location);
+  const exactNeedSlug = marketSlugToNeedSlug(rawCategory, rawLocation);
+  const locationTail = getLocationTail(rawCategory, rawLocation);
   const locationLabel = titleCaseSlug(locationTail);
 
   const { data: exactRows } = exactNeedSlug
@@ -139,8 +141,8 @@ export default async function MarketCategoryLocationPage({ params }: PageProps) 
     name: `${category} in ${location}`,
     description: `Marketplace demand and vendor opportunity page for ${category} in ${location}.`,
     url: `https://3bigha.com/market/${encodeURIComponent(
-      params.category
-    )}/${encodeURIComponent(params.location)}`,
+      rawCategory
+    )}/${encodeURIComponent(rawLocation)}`,
     about: category,
     spatialCoverage: location,
     provider: {

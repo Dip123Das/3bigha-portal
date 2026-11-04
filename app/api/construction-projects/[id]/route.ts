@@ -11,9 +11,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type RouteParams = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 function toNumberOrUndefined(value: unknown): number | undefined {
@@ -27,7 +27,8 @@ function toNumberOrUndefined(value: unknown): number | undefined {
 
 export async function GET(_req: Request, { params }: RouteParams) {
   try {
-    const cookieStore = cookies();
+    const { id: projectId } = await params;
+    const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
     const {
@@ -50,7 +51,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
         construction_project_snapshots (*)
       `,
       )
-      .eq("id", params.id)
+      .eq("id", projectId)
       .eq("user_id", user.id)
       .single();
 
@@ -77,7 +78,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
 
 export async function PATCH(req: Request, { params }: RouteParams) {
   try {
-    const cookieStore = cookies();
+    const { id: projectId } = await params;
+    const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
     const {
@@ -138,7 +140,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     const { data, error } = await supabase
       .from("construction_projects")
       .update(updatePayload)
-      .eq("id", params.id)
+      .eq("id", projectId)
       .eq("user_id", user.id)
       .select("*")
       .single();
@@ -166,7 +168,8 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
 export async function DELETE(_req: Request, { params }: RouteParams) {
   try {
-    const cookieStore = cookies();
+    const { id: projectId } = await params;
+    const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
     const {
@@ -184,7 +187,7 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
     const { error } = await supabase
       .from("construction_projects")
       .delete()
-      .eq("id", params.id)
+      .eq("id", projectId)
       .eq("user_id", user.id);
 
     if (error) {

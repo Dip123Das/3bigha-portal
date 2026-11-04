@@ -92,9 +92,10 @@ function buildBackHref(contextType?: string | null, contextId?: string | null) {
 export default async function VendorConversationPage({
   params,
 }: {
-  params: { conversationId: string };
+  params: Promise<{ conversationId: string }>;
 }) {
-  const conversationId = decodeURIComponent(params.conversationId || "");
+  const { conversationId: rawConversationId } = await params;
+  const conversationId = decodeURIComponent(rawConversationId || "");
   const supabase = getSupabaseServerClient(await cookies());
 
   if (isBadConversationId(conversationId)) {

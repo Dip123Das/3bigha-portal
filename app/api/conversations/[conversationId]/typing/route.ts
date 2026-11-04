@@ -5,9 +5,9 @@ import { getSupabaseServerClient } from "@/lib/supabaseServer";
 export const dynamic = "force-dynamic";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     conversationId: string;
-  };
+  }>;
 };
 
 export async function POST(
@@ -15,10 +15,11 @@ export async function POST(
   { params }: RouteContext
 ) {
   try {
+    const resolvedParams = await params;
     const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
-    const conversationId = decodeURIComponent(params.conversationId || "");
+    const conversationId = decodeURIComponent(resolvedParams.conversationId || "");
 
     if (!conversationId) {
       return NextResponse.json(

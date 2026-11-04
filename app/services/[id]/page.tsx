@@ -13,9 +13,9 @@ import {
 } from "@/lib/seo/ai-search-content";
 
 type PageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 type ServiceRow = {
@@ -162,16 +162,17 @@ async function getService(id: string) {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const id = clean(params.id);
+  const { id } = await params;
+  const cleanId = clean(id);
 
-  if (!id || !isUuid(id)) {
+  if (!id || !isUuid(cleanId)) {
     return {
       title: "Service Not Found | 3Bigha",
       robots: { index: false, follow: false },
     };
   }
 
-  const row = await getService(id);
+  const row = await getService(cleanId);
 
   if (!row || row.service_is_active === false) {
     return {
@@ -196,7 +197,7 @@ export async function generateMetadata({ params }: PageProps) {
     title,
     description,
     alternates: {
-      canonical: `${siteConfig.url}/services/${encodeURIComponent(id)}`,
+      canonical: `${siteConfig.url}/services/${encodeURIComponent(cleanId)}`,
     },
     robots: noIndex
       ? {
@@ -211,7 +212,7 @@ export async function generateMetadata({ params }: PageProps) {
     openGraph: {
       title,
       description,
-      url: `${siteConfig.url}/services/${encodeURIComponent(id)}`,
+      url: `${siteConfig.url}/services/${encodeURIComponent(cleanId)}`,
       type: "website",
       siteName: siteConfig.name,
     },
@@ -224,7 +225,8 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function ServiceDetailsPage({ params }: PageProps) {
-  const id = clean(params.id);
+  const { id: rawId } = await params;
+  const id = clean(rawId);
 
   if (!id || !isUuid(id)) {
     notFound();

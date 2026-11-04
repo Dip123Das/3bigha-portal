@@ -202,8 +202,9 @@ function stateStyle(value: string) {
 export default async function VerificationReviewsPage({
   searchParams,
 }: {
-  searchParams?: Params;
+  searchParams?: Promise<Params>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const access = await requireMasterAdmin();
 
   if ("error" in access) {
@@ -221,19 +222,19 @@ export default async function VerificationReviewsPage({
   }
 
   const statusFilter = one(
-    searchParams?.status
+    resolvedSearchParams?.status
   );
-  const query = one(searchParams?.q)
+  const query = one(resolvedSearchParams?.q)
     .trim()
     .toLowerCase();
   const selectedCaseId = one(
-    searchParams?.case
+    resolvedSearchParams?.case
   );
   const decisionState = one(
-    searchParams?.decision
+    resolvedSearchParams?.decision
   );
   const decisionMessage = one(
-    searchParams?.message
+    resolvedSearchParams?.message
   );
 
   const { admin } = access;
@@ -625,7 +626,7 @@ export default async function VerificationReviewsPage({
         <input
           name="q"
           defaultValue={one(
-            searchParams?.q
+            resolvedSearchParams?.q
           )}
           placeholder="Search member or business"
           style={{

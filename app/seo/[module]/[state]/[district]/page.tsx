@@ -17,11 +17,11 @@ export async function generateStaticParams() {
 }
 
 type PageProps = {
-  params: {
+  params: Promise<{
     module: string;
     state: string;
     district: string;
-  };
+  }>;
 };
 
 function normalize(value: string) {
@@ -108,17 +108,18 @@ function districtDescription(
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const module = isSeoModule(params.module) ? params.module : "property";
+  const resolvedParams = await params;
+  const module = isSeoModule(resolvedParams.module) ? resolvedParams.module : "property";
   const districtGeo = (await getSeoGeoCities()).find(
-    (geo) => geo.stateSlug === params.state && geo.districtSlug === params.district
+    (geo) => geo.stateSlug === resolvedParams.state && geo.districtSlug === resolvedParams.district
   );
 
-  const state = districtGeo?.state || normalize(params.state);
-  const district = districtGeo?.district || normalize(params.district);
+  const state = districtGeo?.state || normalize(resolvedParams.state);
+  const district = districtGeo?.district || normalize(resolvedParams.district);
 
   const title = `${moduleTitle(module)} in ${district}, ${state} | 3Bigha`;
   const description = districtDescription(module, district, state);
-  const path = `/seo/${module}/${params.state}/${params.district}`;
+  const path = `/seo/${module}/${resolvedParams.state}/${resolvedParams.district}`;
 
   return {
     title,
@@ -142,29 +143,30 @@ export async function generateMetadata({
 }
 
 export default async function DistrictSeoPage({ params }: PageProps) {
-  const module = isSeoModule(params.module) ? params.module : "property";
+  const resolvedParams = await params;
+  const module = isSeoModule(resolvedParams.module) ? resolvedParams.module : "property";
 
   const districtGeo = (await getSeoGeoCities()).find(
-    (geo) => geo.stateSlug === params.state && geo.districtSlug === params.district
+    (geo) => geo.stateSlug === resolvedParams.state && geo.districtSlug === resolvedParams.district
   );
 
-  const state = districtGeo?.state || normalize(params.state);
-  const district = districtGeo?.district || normalize(params.district);
+  const state = districtGeo?.state || normalize(resolvedParams.state);
+  const district = districtGeo?.district || normalize(resolvedParams.district);
 
   const title = moduleTitle(module);
   const description = districtDescription(module, district, state);
 
   const districtCities = (await getSeoGeoCities()).filter(
-    (geo) => geo.stateSlug === params.state && geo.districtSlug === params.district
+    (geo) => geo.stateSlug === resolvedParams.state && geo.districtSlug === resolvedParams.district
   );
 
   const relatedModules = seoModules.filter((item) => item !== module);
   const relatedCategories = getSeoCategories(module).slice(0, 12);
-const internalLinks = buildInternalLinks({ state: params.state, district: params.district });
+const internalLinks = buildInternalLinks({ state: resolvedParams.state, district: resolvedParams.district });
   const categoryBaseGeo = (await getSeoGeoCities(5000)).find(
     (geo) =>
-      geo.stateSlug === params.state &&
-      geo.districtSlug === params.district &&
+      geo.stateSlug === resolvedParams.state &&
+      geo.districtSlug === resolvedParams.district &&
       geo.citySlug
   );
   const searches = popularSearches(module, district);
@@ -190,7 +192,7 @@ const internalLinks = buildInternalLinks({ state: params.state, district: params
       href: `/location/${city.citySlug}`,
     }));
 
-  const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}/${params.district}`;
+  const canonicalUrl = `${siteConfig.url}/seo/${module}/${resolvedParams.state}/${resolvedParams.district}`;
 
   const schemaGraph = buildSeoSchemaGraph({
     module,
@@ -203,7 +205,7 @@ const internalLinks = buildInternalLinks({ state: params.state, district: params
       { name: "Home", url: siteConfig.url },
       {
         name: title,
-        url: `${siteConfig.url}/seo/${module}/${params.state}`,
+        url: `${siteConfig.url}/seo/${module}/${resolvedParams.state}`,
       },
       {
         name: district,
@@ -224,7 +226,7 @@ const internalLinks = buildInternalLinks({ state: params.state, district: params
 
   
   const seoRouteParams: any =
-    typeof params !== "undefined" && params ? params : {};
+    resolvedParams;
 
   const seoQualityTitle = [
     seoRouteParams.module,
@@ -623,7 +625,7 @@ return (
             {relatedModules.map((item) => (
               <Link
                 key={item}
-                href={`/seo/${item}/${params.state}/${params.district}`}
+                href={`/seo/${item}/${resolvedParams.state}/${resolvedParams.district}`}
                 style={{
                   border: "1px solid #e2e8f0",
                   borderRadius: 12,

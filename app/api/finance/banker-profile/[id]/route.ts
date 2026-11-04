@@ -27,9 +27,10 @@ function normalizeLenderType(type?: string | null) {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const supabase = getAdminClient();
 
@@ -60,7 +61,7 @@ export async function PATCH(
     const { data: banker, error: bankerError } = await supabase
       .from("finance_banker_profiles")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (bankerError) {
@@ -83,7 +84,7 @@ export async function PATCH(
             ? new Date().toISOString()
             : null,
       })
-      .eq("id", params.id);
+      .eq("id", id);
 
     if (error) {
       return NextResponse.json(

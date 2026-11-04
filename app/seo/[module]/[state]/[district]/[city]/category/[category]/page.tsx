@@ -28,13 +28,13 @@ import { getLiveDbMarketData } from "@/lib/seo/live-db-market-data";
 import { buildSeoSchemaGraph } from "@/lib/seo/structured-data";
 
 type PageProps = {
-  params: {
+  params: Promise<{
     module: string;
     state: string;
     district: string;
     city: string;
     category: string;
-  };
+  }>;
 };
 
 export async function generateStaticParams() {
@@ -56,25 +56,26 @@ export async function generateStaticParams() {
 }
 
 export default async function SeoCategoryPage({ params }: PageProps) {
-  if (!isSeoModule(params.module)) {
+  const resolvedParams = await params;
+  if (!isSeoModule(resolvedParams.module)) {
     notFound();
   }
 
-  const module: SeoModule = params.module;
+  const module: SeoModule = resolvedParams.module;
 
-  const geo = getGeoBySlugs(params.state, params.district, params.city);
+  const geo = getGeoBySlugs(resolvedParams.state, resolvedParams.district, resolvedParams.city);
 
   if (!geo) {
     notFound();
   }
 
-  const category = getSeoCategory(module, params.category);
+  const category = getSeoCategory(module, resolvedParams.category);
 
   if (!category) {
     notFound();
   }
 
-  const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}/${params.district}/${params.city}/category/${params.category}`;
+  const canonicalUrl = `${siteConfig.url}/seo/${module}/${resolvedParams.state}/${resolvedParams.district}/${resolvedParams.city}/category/${resolvedParams.category}`;
 
   const content = getCategorySeoContent({
     module,
@@ -116,9 +117,9 @@ export default async function SeoCategoryPage({ params }: PageProps) {
   const internalLinks = [
     ...getCrossModuleSeoLinks({
       currentModule: module,
-      state: params.state,
-      district: params.district,
-      city: params.city,
+      state: resolvedParams.state,
+      district: resolvedParams.district,
+      city: resolvedParams.city,
       areaLabel: geo.city,
     }),
     ...getIntentSeoLinks({
@@ -141,14 +142,14 @@ export default async function SeoCategoryPage({ params }: PageProps) {
     },
     breadcrumbs: [
       { name: "Home", url: siteConfig.url },
-      { name: module, url: `${siteConfig.url}/seo/${module}/${params.state}` },
+      { name: module, url: `${siteConfig.url}/seo/${module}/${resolvedParams.state}` },
       {
         name: geo.district,
-        url: `${siteConfig.url}/seo/${module}/${params.state}/${params.district}`,
+        url: `${siteConfig.url}/seo/${module}/${resolvedParams.state}/${resolvedParams.district}`,
       },
       {
         name: geo.city,
-        url: `${siteConfig.url}/seo/${module}/${params.state}/${params.district}/${params.city}`,
+        url: `${siteConfig.url}/seo/${module}/${resolvedParams.state}/${resolvedParams.district}/${resolvedParams.city}`,
       },
       { name: category.label, url: canonicalUrl },
     ],
@@ -157,7 +158,7 @@ export default async function SeoCategoryPage({ params }: PageProps) {
 
   
   const seoRouteParams: any =
-    typeof params !== "undefined" && params ? params : {};
+    resolvedParams;
 
   const seoQualityTitle = [
     seoRouteParams.module,
@@ -493,7 +494,7 @@ return (
               {relatedCategories.map((item) => (
                 <Link
                   key={item.slug}
-                  href={`/seo/${module}/${params.state}/${params.district}/${params.city}/category/${item.slug}`}
+                  href={`/seo/${module}/${resolvedParams.state}/${resolvedParams.district}/${resolvedParams.city}/category/${item.slug}`}
                   style={{
                     background: "#f8fafc",
                     border: "1px solid #e2e8f0",

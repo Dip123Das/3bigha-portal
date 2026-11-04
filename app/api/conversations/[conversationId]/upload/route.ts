@@ -15,9 +15,9 @@ function isUuid(v?: string | null) {
 }
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     conversationId: string;
-  };
+  }>;
 };
 
 const ALLOWED_EXTENSIONS = new Set([
@@ -104,10 +104,11 @@ function buildPublicUrl(baseUrl: string, bucket: string, path: string) {
 
 export async function POST(req: Request, { params }: RouteContext) {
   try {
+    const resolvedParams = await params;
     const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
-    const conversationId = decodeURIComponent(params.conversationId || "").trim();
+    const conversationId = decodeURIComponent(resolvedParams.conversationId || "").trim();
 
     if (!conversationId) {
       return NextResponse.json({ error: "Missing conversationId." }, { status: 400 });

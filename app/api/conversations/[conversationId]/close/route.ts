@@ -8,10 +8,10 @@ const SUPABASE_SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function POST(
   req: Request,
-  { params }: { params: { conversationId: string } }
+  { params }: { params: Promise<{ conversationId: string }> }
 ) {
   try {
-    const conversationId = params.conversationId;
+    const { conversationId } = await params;
 
     if (!conversationId) {
       return NextResponse.json({ error: "Missing conversationId" }, { status: 400 });

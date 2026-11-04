@@ -27,9 +27,10 @@ async function ownerContext(unitId: string) {
   return { admin, user, unit: { ...unit.data, builder_project: project.data } };
 }
 
-export async function GET(_request: NextRequest, context: { params: { unitId: string } }) {
+export async function GET(_request: NextRequest, context: { params: Promise<{ unitId: string }> }) {
   try {
-    const owned = await ownerContext(clean(context.params.unitId));
+    const { unitId } = await context.params;
+    const owned = await ownerContext(clean(unitId));
     if (owned.response) return owned.response;
     const { admin, unit } = owned;
     const [pricing, selectedAmenities, amenities, types, subtypes] = await Promise.all([
@@ -59,9 +60,10 @@ function positiveOrNull(value: unknown, label: string) {
   return parsed;
 }
 
-export async function PATCH(request: NextRequest, context: { params: { unitId: string } }) {
+export async function PATCH(request: NextRequest, context: { params: Promise<{ unitId: string }> }) {
   try {
-    const unitId = clean(context.params.unitId);
+    const resolvedParams = await context.params;
+    const unitId = clean(resolvedParams.unitId);
     const owned = await ownerContext(unitId);
     if (owned.response) return owned.response;
     const { admin, user } = owned;

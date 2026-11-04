@@ -18,9 +18,9 @@ import {
 } from "@/lib/mobile/server/vendor-conversation";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     conversationId: string;
-  };
+  }>;
 };
 
 const headers = {
@@ -75,11 +75,12 @@ export async function GET(
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
+    const { conversationId } = await params;
 
     const thread = await loadMobileVendorConversation(
       auth.supabase,
       auth.user,
-      decodeURIComponent(params.conversationId || ""),
+      decodeURIComponent(conversationId || ""),
     );
 
     return NextResponse.json(mobileSuccess(thread), {
@@ -97,12 +98,13 @@ export async function POST(
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
+    const { conversationId } = await params;
     const body = await request.json().catch(() => ({}));
 
     const message = await sendMobileVendorMessage(
       auth.supabase,
       auth.user,
-      decodeURIComponent(params.conversationId || ""),
+      decodeURIComponent(conversationId || ""),
       body?.body,
     );
 

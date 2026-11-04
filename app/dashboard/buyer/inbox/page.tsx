@@ -106,11 +106,12 @@ function buildListingTypeHref(nextListingType: ListingTypeFilter) {
 export default async function BuyerInboxPage({
   searchParams,
 }: {
-  searchParams?: {
+  searchParams?: Promise<{
     listingType?: string;
-  };
+  }>;
 }) {
-  const listingType = normalizeListingType(searchParams?.listingType);
+  const resolvedSearchParams = await searchParams;
+  const listingType = normalizeListingType(resolvedSearchParams?.listingType);
   const listingChatsRaw = (await fetchBuyerListingConversations()) as ListingChatRow[];
 
   const listingChats = listingChatsRaw

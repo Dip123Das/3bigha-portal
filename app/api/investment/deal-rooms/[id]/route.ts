@@ -133,10 +133,11 @@ async function buildUserMap(supabase: any, userIds: string[]) {
 
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = decodeURIComponent(params?.id || "").trim();
+    const resolvedParams = await params;
+    const id = decodeURIComponent(resolvedParams.id || "").trim();
 
     if (!isValidDealRoomId(id)) {
       return NextResponse.json(

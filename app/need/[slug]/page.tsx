@@ -6,9 +6,9 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 };
 
 function getSupabase() {
@@ -160,6 +160,7 @@ function buildRelatedNeedLinks(slug: string) {
 }
 
 export async function generateMetadata({ params }: PageProps) {
+  const { slug } = await params;
   const supabase = getSupabase();
 
   if (!supabase) {
@@ -172,7 +173,7 @@ export async function generateMetadata({ params }: PageProps) {
   const { data } = await supabase
     .from("vendor_opportunity_seo")
     .select("slug, seo_title, seo_description, is_indexable")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .eq("is_indexable", true)
     .maybeSingle();
 
@@ -205,13 +206,14 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function NeedSlugPage({ params }: PageProps) {
+  const { slug } = await params;
   const supabase = getSupabase();
   if (!supabase) notFound();
 
   const { data } = await supabase
     .from("vendor_opportunity_seo")
     .select("slug, seo_title, seo_description, is_indexable, created_at")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .eq("is_indexable", true)
     .maybeSingle();
 

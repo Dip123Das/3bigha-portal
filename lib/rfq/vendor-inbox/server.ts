@@ -49,7 +49,7 @@ export type VendorInboxSort =
   | "value_low";
 
 async function requireVendorId() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = getSupabaseServerClient(cookieStore);
 
   const { data: u, error: uErr } = await supabase.auth.getUser();

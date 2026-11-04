@@ -63,15 +63,16 @@ function failure(error: unknown) {
 export async function GET(
   _request: Request,
   context: {
-    params: { readinessId: string; version: string };
+    params: Promise<{ readinessId: string; version: string }>;
   },
 ) {
   try {
     const auth = await authenticateMobileRequest(_request);
+    const resolvedParams = await context.params;
     const result = await readMobilePropertyBookingAgreementDraftVersion({
       userId: auth.user.id,
-      readinessId: clean(context.params.readinessId),
-      version: Number(context.params.version),
+      readinessId: clean(resolvedParams.readinessId),
+      version: Number(resolvedParams.version),
     });
 
     return NextResponse.json(mobileSuccess(result), {

@@ -65,8 +65,8 @@ function isBadId(v?: string | null) {
   return !s || s === "id" || s === "[id]" || s === "<id>" || !UUID_RE.test(s);
 }
 
-function getSupabaseServer() {
-  const cookieStore = cookies();
+async function getSupabaseServer() {
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -117,15 +117,16 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const id = decodeURIComponent(params.id || "");
+  const { id: rawId } = await params;
+  const id = decodeURIComponent(rawId || "");
 
   if (isBadId(id)) {
     notFound();
   }
 
-  const supabase = getSupabaseServer();
+  const supabase = await getSupabaseServer();
 
   const metadataRes = await supabase
     .from("property_listings")
@@ -224,15 +225,17 @@ export default async function PropertyPublicDetailPage({
   params,
   searchParams,
 }: {
-  params: { id: string };
-  searchParams?: { mode?: string };
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ mode?: string }>;
 }) {
-  const id = decodeURIComponent(params.id || "");
+  const { id: rawId } = await params;
+  const resolvedSearchParams = await searchParams;
+  const id = decodeURIComponent(rawId || "");
 
   const activeBuyerMode = ["investor", "family", "budget", "rental"].includes(
-    String(searchParams?.mode || "")
+    String(resolvedSearchParams?.mode || "")
   )
-    ? String(searchParams?.mode)
+    ? String(resolvedSearchParams?.mode)
     : "investor";
 
   const buyerModes = [
@@ -246,7 +249,7 @@ export default async function PropertyPublicDetailPage({
     notFound();
   }
 
-  const supabase = getSupabaseServer();
+  const supabase = await getSupabaseServer();
 
   const propertyRes = await supabase
     .from("property_listings")

@@ -8,9 +8,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type RouteParams = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 function normalizeStatus(value: unknown) {
@@ -38,7 +38,8 @@ function toNumberOrUndefined(value: unknown): number | undefined {
 
 export async function GET(_req: Request, { params }: RouteParams) {
   try {
-    const supabase = getSupabaseServerClient(cookies());
+    const resolvedParams = await params;
+    const supabase = getSupabaseServerClient(await cookies());
 
     const {
       data: { user },
@@ -55,7 +56,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
     const { data, error } = await supabase
       .from("construction_project_milestones")
       .select("*")
-      .eq("project_id", params.id)
+      .eq("project_id", resolvedParams.id)
       .eq("user_id", user.id)
       .order("sequence", { ascending: true });
 
@@ -82,7 +83,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
 
 export async function POST(req: Request, { params }: RouteParams) {
   try {
-    const supabase = getSupabaseServerClient(cookies());
+    const resolvedParams = await params;
+    const supabase = getSupabaseServerClient(await cookies());
 
     const {
       data: { user },
@@ -99,7 +101,7 @@ export async function POST(req: Request, { params }: RouteParams) {
     const body = await req.json();
 
     const plan = generateConstructionMilestonePlan({
-      projectId: params.id,
+      projectId: resolvedParams.id,
       builtUpAreaSqFt:
         typeof body.builtUpAreaSqFt === "number"
           ? body.builtUpAreaSqFt
@@ -124,7 +126,7 @@ export async function POST(req: Request, { params }: RouteParams) {
     });
 
     const rows = plan.milestones.map((milestone) => ({
-      project_id: params.id,
+      project_id: resolvedParams.id,
       user_id: user.id,
       milestone_key: milestone.key,
       title: milestone.title,
@@ -172,7 +174,8 @@ export async function POST(req: Request, { params }: RouteParams) {
 
 export async function PATCH(req: Request, { params }: RouteParams) {
   try {
-    const supabase = getSupabaseServerClient(cookies());
+    const resolvedParams = await params;
+    const supabase = getSupabaseServerClient(await cookies());
 
     const {
       data: { user },
@@ -220,7 +223,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     const { data, error } = await supabase
       .from("construction_project_milestones")
       .update(update)
-      .eq("project_id", params.id)
+      .eq("project_id", resolvedParams.id)
       .eq("user_id", user.id)
       .eq("milestone_key", body.milestoneKey)
       .select("*")

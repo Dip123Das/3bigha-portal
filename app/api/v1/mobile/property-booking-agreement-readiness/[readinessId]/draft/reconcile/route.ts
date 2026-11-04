@@ -65,11 +65,12 @@ function failure(error: unknown) {
 
 export async function POST(
   request: Request,
-  context: { params: { readinessId: string } },
+  context: { params: Promise<{ readinessId: string }> },
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
-    const readinessId = clean(context.params.readinessId);
+    const { readinessId: rawReadinessId } = await context.params;
+    const readinessId = clean(rawReadinessId);
     const body = (await request.json().catch(() => null)) as
       | Record<string, unknown>
       | null;
