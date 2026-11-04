@@ -26,12 +26,14 @@ export default async function BuyerRfqChatPage({
   params,
   searchParams,
 }: {
-  params: { rfqId: string };
-  searchParams?: { vendorId?: string };
+  params: Promise<{ rfqId: string }>;
+  searchParams?: Promise<{ vendorId?: string }>;
 }) {
-  const rfqId = decodeURIComponent(params.rfqId || "");
-  const vendorId = decodeURIComponent(searchParams?.vendorId || "");
-  const supabase = getSupabaseServerClient(cookies());
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+  const rfqId = decodeURIComponent(resolvedParams.rfqId || "");
+  const vendorId = decodeURIComponent(resolvedSearchParams?.vendorId || "");
+  const supabase = getSupabaseServerClient(await cookies());
 
   if (!UUID_RE.test(rfqId)) {
     return <div style={{ padding: 12 }}>Invalid RFQ ID</div>;

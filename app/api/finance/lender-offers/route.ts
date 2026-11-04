@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     const state = searchParams.get("state") || "West Bengal";
     const productType = searchParams.get("productType") || "home";
 
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
     let query = supabase

@@ -75,7 +75,7 @@ type MessageRow = {
 };
 
 async function requireUser() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = getSupabaseServerClient(cookieStore);
 
   const {

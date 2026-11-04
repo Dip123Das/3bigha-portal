@@ -52,11 +52,12 @@ function validCheckoutSignature(orderId: string, paymentId: string, signature: u
 
 export async function POST(
   request: Request,
-  context: { params: { advanceRequestId: string } },
+  context: { params: Promise<{ advanceRequestId: string }> },
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
-    const advanceRequestId = String(context.params.advanceRequestId || "").trim();
+    const { advanceRequestId: rawAdvanceRequestId } = await context.params;
+    const advanceRequestId = String(rawAdvanceRequestId || "").trim();
     const body = await request.json().catch(() => null);
     const orderId = String(body?.razorpay_order_id ?? "").trim();
     const paymentId = String(body?.razorpay_payment_id ?? "").trim();

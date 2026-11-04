@@ -176,7 +176,7 @@ async function resolveId(params: Promise<{ id: string }> | { id: string }) {
 
 export async function GET(
   _req: Request,
-  context: { params: Promise<{ id: string }> | { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireInvestmentAdmin();
 
@@ -225,7 +225,7 @@ export async function GET(
 
 export async function PATCH(
   req: Request,
-  context: { params: Promise<{ id: string }> | { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireInvestmentAdmin();
 

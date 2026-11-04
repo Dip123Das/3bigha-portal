@@ -6,39 +6,41 @@ import { formatIndianCurrency } from "@/lib/construction-cost/cost-utils";
 import ConstructionCostCalculator from "@/components/construction-cost/ConstructionCostCalculator";
 
 type PageProps = {
-  params: {
+  params: Promise<{
     state: string;
     city: string;
-  };
+  }>;
 };
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
+  const { state, city } = await params;
   const content = generateConstructionSeoContent({
-    state: params.state,
-    city: params.city,
+    state: state,
+    city: city,
   });
 
   return {
     title: content.title,
     description: content.description,
     alternates: {
-      canonical: `/construction-cost/${params.state}/${params.city}`,
+      canonical: `/construction-cost/${state}/${city}`,
     },
     openGraph: {
       title: content.title,
       description: content.description,
-      url: `/construction-cost/${params.state}/${params.city}`,
+      url: `/construction-cost/${state}/${city}`,
       type: "website",
     },
   };
 }
 
-export default function ConstructionCostPage({ params }: PageProps) {
+export default async function ConstructionCostPage({ params }: PageProps) {
+  const { state, city } = await params;
   const content = generateConstructionSeoContent({
-    state: params.state,
-    city: params.city,
+    state: state,
+    city: city,
   });
 
   const estimate = content.estimate;
@@ -198,7 +200,7 @@ export default function ConstructionCostPage({ params }: PageProps) {
 
               <div className="mt-4 space-y-3 text-sm font-bold">
                 <Link
-                  href={`/house-construction-cost/${params.state}/${params.city}`}
+                  href={`/house-construction-cost/${state}/${city}`}
                   className="block text-emerald-700 hover:text-emerald-900"
                 >
                   House construction cost page

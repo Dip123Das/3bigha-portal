@@ -21,7 +21,8 @@ function classify(role:string,requested:string){
   return"General Member";
 }
 
-export default async function AdminUsersPage({searchParams}:{searchParams?:Params}){
+export default async function AdminUsersPage({searchParams}:{searchParams?:Promise<Params>}){
+  const resolvedSearchParams=await searchParams;
   const access=await requireMasterAdmin();
   if("error"in access){if(access.status===401)redirect("/login?next=/admin/users");return <main className={styles.page}>Access denied</main>}
   const{user,admin:supabase}=access;
@@ -51,16 +52,16 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
     return{profile,business,authUser,complimentary,group:classify(profile.role||"",profile.requested_role||""),stateId:business.geo_state_id||profile.geo_state_id||"",districtId:business.geo_district_id||profile.geo_district_id||""};
   });
 
-  const q=one(searchParams?.q).trim().toLowerCase(),identity=one(searchParams?.identity),role=one(searchParams?.role),approval=one(searchParams?.approval),account=one(searchParams?.account),plan=one(searchParams?.plan),state=one(searchParams?.state);
+  const q=one(resolvedSearchParams?.q).trim().toLowerCase(),identity=one(resolvedSearchParams?.identity),role=one(resolvedSearchParams?.role),approval=one(resolvedSearchParams?.approval),account=one(resolvedSearchParams?.account),plan=one(resolvedSearchParams?.plan),state=one(resolvedSearchParams?.state);
   const workspaceOptions=["overview","identity","business","geography","verification","subscription","security","timeline","controls"] as const;
-  const requestedWorkspace=one(searchParams?.workspace);
+  const requestedWorkspace=one(resolvedSearchParams?.workspace);
   const activeWorkspace=workspaceOptions.includes(requestedWorkspace as (typeof workspaceOptions)[number])?requestedWorkspace:"overview";
   const filtered=all.filter(({profile,business,complimentary,group,stateId})=>{
     const effectivePlan=complimentary?.active?complimentary.plan:business.subscription_plan||"none";
     const hay=`${profile.full_name||""} ${profile.email||""} ${business.business_name||""} ${profile.role||""} ${profile.requested_role||""}`.toLowerCase();
     return(!q||hay.includes(q))&&(!identity||group===identity)&&(!role||profile.role===role||profile.requested_role===role)&&(!approval||profile.approval_status===approval)&&(!account||(profile.account_status||"active")===account)&&(!plan||effectivePlan===plan)&&(!state||stateId===state);
   });
-  const selectedId=one(searchParams?.member)||filtered[0]?.profile.id||"";
+  const selectedId=one(resolvedSearchParams?.member)||filtered[0]?.profile.id||"";
   const selected=filtered.find(({profile})=>profile.id===selectedId)||filtered[0];
   const roles=Array.from(new Set(all.flatMap(({profile})=>[profile.role,profile.requested_role]).filter(Boolean))).sort();
 
@@ -71,9 +72,9 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
   const highest=all.filter(({business,complimentary})=>["gold_vendor","platinum_vendor"].includes(complimentary?.active?complimentary.plan:business.subscription_plan||"")).length;
   const groupCount=(name:string)=>all.filter(({group})=>group===name).length;
 
-  const success=one(searchParams?.success),error=one(searchParams?.error);
+  const success=one(resolvedSearchParams?.success),error=one(resolvedSearchParams?.error);
   const preserve=new URLSearchParams();
-  for(const key of["q","identity","role","approval","account","plan","state"]){const value=one(searchParams?.[key]);if(value)preserve.set(key,value)}
+  for(const key of["q","identity","role","approval","account","plan","state"]){const value=one(resolvedSearchParams?.[key]);if(value)preserve.set(key,value)}
   const workspaceHref=(workspace:string,memberId:string)=>{const params=new URLSearchParams(preserve);params.set("member",memberId);if(workspace!=="overview")params.set("workspace",workspace);return `/admin/users?${params.toString()}`};
 
   return <main className={styles.page}>
@@ -90,7 +91,7 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
       {["Buyer","Seller / Vendor","Builder / Property","Professional / Service"].map(group=><a key={group} href={`/admin/users?identity=${encodeURIComponent(group)}`}><span>{group}</span><strong>{groupCount(group)}</strong><small>Filter this identity group</small></a>)}
     </section>
     <form method="get" className={styles.filters}>{activeWorkspace!=="overview"?<input type="hidden" name="workspace" value={activeWorkspace}/>:null}
-      <input className={styles.field} name="q" defaultValue={one(searchParams?.q)} placeholder="Search name, email, business or role"/>
+      <input className={styles.field} name="q" defaultValue={one(resolvedSearchParams?.q)} placeholder="Search name, email, business or role"/>
       <select className={styles.field} name="identity" defaultValue={identity}><option value="">All member groups</option>{["Buyer","Seller / Vendor","Investor","Banker","Blogger","Professional / Service","Builder / Property","Equipment / Transport","General Member"].map(v=><option key={v}>{v}</option>)}</select>
       <select className={styles.field} name="role" defaultValue={role}><option value="">All exact roles</option>{roles.map(v=><option key={v} value={v}>{clean(v)}</option>)}</select>
       <select className={styles.field} name="approval" defaultValue={approval}><option value="">All approvals</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>

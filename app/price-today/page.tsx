@@ -51,11 +51,12 @@ function hasSearchOrFilterParameters(
   );
 }
 
-export function generateMetadata({
+export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: PriceTodaySearchParams;
-}): Metadata {
+  searchParams: Promise<PriceTodaySearchParams>;
+}): Promise<Metadata> {
+  const resolvedSearchParams = await searchParams;
   return createMetadata({
     title:
       "Price Today | Building Materials, Property, Services & Rentals Market Rates",
@@ -64,7 +65,7 @@ export function generateMetadata({
     path: "/price-today",
     image: "/og-image-new.jpg",
     noIndex: hasSearchOrFilterParameters(
-      searchParams || {}
+      resolvedSearchParams || {}
     ),
     keywords: [
       "price today",

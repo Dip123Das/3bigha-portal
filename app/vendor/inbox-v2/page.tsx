@@ -117,7 +117,7 @@ function pillLinkStyle(active: boolean): CSSProperties {
 export default async function VendorInboxV2Page({
   searchParams,
 }: {
-  searchParams?: {
+  searchParams?: Promise<{
     q?: string;
     status?: string;
     quoted?: string;
@@ -125,16 +125,17 @@ export default async function VendorInboxV2Page({
     page?: string;
     focus?: string;
     listingType?: string;
-  };
+  }>;
 }) {
-  const q = searchParams?.q ?? "";
-  const status = searchParams?.status ?? "";
-  const quoted = normalizeQuoted(searchParams?.quoted);
-  const sort = normalizeSort(searchParams?.sort);
-  const focus = (searchParams?.focus ?? "").trim();
-  const listingType = normalizeListingType(searchParams?.listingType);
+  const resolvedSearchParams = await searchParams;
+  const q = resolvedSearchParams?.q ?? "";
+  const status = resolvedSearchParams?.status ?? "";
+  const quoted = normalizeQuoted(resolvedSearchParams?.quoted);
+  const sort = normalizeSort(resolvedSearchParams?.sort);
+  const focus = (resolvedSearchParams?.focus ?? "").trim();
+  const listingType = normalizeListingType(resolvedSearchParams?.listingType);
 
-  const page = Math.max(parseInt(searchParams?.page ?? "1", 10) || 1, 1);
+  const page = Math.max(parseInt(resolvedSearchParams?.page ?? "1", 10) || 1, 1);
   const pageSize = 10;
   const offset = (page - 1) * pageSize;
 

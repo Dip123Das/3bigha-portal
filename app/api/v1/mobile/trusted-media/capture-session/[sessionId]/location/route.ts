@@ -81,7 +81,7 @@ function failure(error: unknown) {
 
 export async function POST(
   request: Request,
-  context: { params: { sessionId: string } },
+  context: { params: Promise<{ sessionId: string }> },
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
@@ -101,7 +101,8 @@ export async function POST(
       return invalidLocation("Live GPS coordinates are required.");
     }
 
-    const sessionId = clean(context.params.sessionId, 80);
+    const { sessionId: rawSessionId } = await context.params;
+    const sessionId = clean(rawSessionId, 80);
     const nonce = clean(record.nonce, 256);
     const latitude = finiteNumber(location.latitude);
     const longitude = finiteNumber(location.longitude);

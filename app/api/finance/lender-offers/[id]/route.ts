@@ -14,9 +14,10 @@ function getAdminClient() {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const supabase = getAdminClient();
 
@@ -53,7 +54,7 @@ export async function PATCH(
     const { error } = await supabase
       .from("finance_lender_offers")
       .update(payload)
-      .eq("id", params.id);
+      .eq("id", id);
 
     if (error) {
       return NextResponse.json(

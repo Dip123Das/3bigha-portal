@@ -27,17 +27,18 @@ async function resolveUnifiedConversationId(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { rfqId: string; messageId: string } }
+  { params }: { params: Promise<{ rfqId: string; messageId: string }> }
 ) {
   try {
-    const rfqId = decodeURIComponent(params.rfqId || "");
-    const messageId = decodeURIComponent(params.messageId || "");
+    const resolvedParams = await params;
+    const rfqId = decodeURIComponent(resolvedParams.rfqId || "");
+    const messageId = decodeURIComponent(resolvedParams.messageId || "");
 
     if (!UUID_RE.test(rfqId) || !UUID_RE.test(messageId)) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
-    const supabase = getSupabaseServerClient(cookies());
+    const supabase = getSupabaseServerClient(await cookies());
 
     const {
       data: { user },
@@ -157,17 +158,18 @@ export async function PATCH(
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { rfqId: string; messageId: string } }
+  { params }: { params: Promise<{ rfqId: string; messageId: string }> }
 ) {
   try {
-    const rfqId = decodeURIComponent(params.rfqId || "");
-    const messageId = decodeURIComponent(params.messageId || "");
+    const resolvedParams = await params;
+    const rfqId = decodeURIComponent(resolvedParams.rfqId || "");
+    const messageId = decodeURIComponent(resolvedParams.messageId || "");
 
     if (!UUID_RE.test(rfqId) || !UUID_RE.test(messageId)) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
-    const supabase = getSupabaseServerClient(cookies());
+    const supabase = getSupabaseServerClient(await cookies());
 
     const {
       data: { user },

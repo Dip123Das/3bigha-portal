@@ -15,7 +15,7 @@ type CategoryEntitlementResult = {
 };
 
 export async function POST(request: Request) {
-  const supabase = getSupabaseServerClient(cookies());
+  const supabase = getSupabaseServerClient(await cookies());
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return NextResponse.json({ ok: false, error: "Authentication required" }, { status: 401 });
 

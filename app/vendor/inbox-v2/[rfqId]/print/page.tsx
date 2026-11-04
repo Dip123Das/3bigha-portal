@@ -33,10 +33,11 @@ function fmtDate(v?: string | null) {
 export default async function VendorAcceptedQuotePrintPage({
   params,
 }: {
-  params: { rfqId: string };
+  params: Promise<{ rfqId: string }>;
 }) {
-  const rfqId = decodeURIComponent(params.rfqId || "");
-  const supabase = getSupabaseServerClient(cookies());
+  const { rfqId: rawRfqId } = await params;
+  const rfqId = decodeURIComponent(rawRfqId || "");
+  const supabase = getSupabaseServerClient(await cookies());
 
   if (!UUID_RE.test(rfqId)) {
     return <div style={{ padding: 24 }}>Invalid RFQ ID</div>;

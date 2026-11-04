@@ -8,7 +8,7 @@ export const revalidate = 300;
 
 export async function GET() {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
     const { data, error } = await supabase

@@ -63,7 +63,7 @@ function failure(error: unknown) {
 
 export async function POST(
   request: Request,
-  context: { params: { advanceRequestId: string } },
+  context: { params: Promise<{ advanceRequestId: string }> },
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
@@ -71,9 +71,9 @@ export async function POST(
       (await request.json().catch(() => null)) as
         | Partial<MobilePropertyBookingAdvanceConfirmation>
         | null;
-    const advanceRequestId = clean(
-      context.params.advanceRequestId,
-    );
+    const { advanceRequestId: rawAdvanceRequestId } =
+      await context.params;
+    const advanceRequestId = clean(rawAdvanceRequestId);
 
     if (!body || typeof body !== "object") {
       return NextResponse.json(

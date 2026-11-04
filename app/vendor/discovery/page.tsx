@@ -74,33 +74,34 @@ function procurementFit(score: number) {
 export default async function VendorDiscoveryPage({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams>;
 }) {
-  const query = searchParams.q || searchParams.category || "recommended vendors";
+  const resolvedSearchParams = await searchParams;
+  const query = resolvedSearchParams.q || resolvedSearchParams.category || "recommended vendors";
 
   const vendors = await getMarketplaceDiscoveryVendors();
 
   const filteredVendors = filterVendorsForDiscovery(
     vendors,
-    searchParams.q || searchParams.category
+    resolvedSearchParams.q || resolvedSearchParams.category
   );
 
   const discovery = buildMarketplaceDiscovery({
     query,
-    city: searchParams.city || null,
-    district: searchParams.district || null,
-    locality: searchParams.locality || null,
-    category: searchParams.category || null,
+    city: resolvedSearchParams.city || null,
+    district: resolvedSearchParams.district || null,
+    locality: resolvedSearchParams.locality || null,
+    category: resolvedSearchParams.category || null,
     vendors: filteredVendors.length > 0 ? filteredVendors : vendors,
   });
 
   const graph = buildProcurementKnowledgeGraph({
     title: query,
-    module: searchParams.module || "marketplace",
-    category: searchParams.category || null,
-    city: searchParams.city || null,
-    district: searchParams.district || null,
-    locality: searchParams.locality || null,
+    module: resolvedSearchParams.module || "marketplace",
+    category: resolvedSearchParams.category || null,
+    city: resolvedSearchParams.city || null,
+    district: resolvedSearchParams.district || null,
+    locality: resolvedSearchParams.locality || null,
   });
 
   const rankedVendors = [...discovery.recommendedVendors].sort(
@@ -155,7 +156,7 @@ export default async function VendorDiscoveryPage({
           <div className="rounded-xl border p-4">
             <div className="text-sm text-gray-500">Location</div>
             <div className="mt-1 font-semibold">
-              {[searchParams.locality, searchParams.city, searchParams.district]
+              {[resolvedSearchParams.locality, resolvedSearchParams.city, resolvedSearchParams.district]
                 .filter(Boolean)
                 .join(", ") || "Marketplace wide"}
             </div>

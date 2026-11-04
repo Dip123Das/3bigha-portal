@@ -22,8 +22,9 @@ function priorityRank(value: unknown) {
 export default async function VerificationWorkbenchPage({
   searchParams,
 }: {
-  searchParams?: { view?: string };
+  searchParams?: Promise<{ view?: string }>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const access = await requireMasterAdmin();
 
   if ("error" in access) {
@@ -73,7 +74,7 @@ export default async function VerificationWorkbenchPage({
     noteMap.set(note.case_id, list);
   }
 
-  const view = searchParams?.view || "all";
+  const view = resolvedSearchParams?.view || "all";
   const rows = [...latestByUser.values()]
     .filter((item: any) => !closed.has(item.status))
     .map((item: any) => {

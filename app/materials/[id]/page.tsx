@@ -43,8 +43,8 @@ function isBadId(v?: string | null) {
   return !s || s === "id" || s === "[id]" || s === "<id>" || !UUID_RE.test(s);
 }
 
-function getSupabaseServer() {
-  const cookieStore = cookies();
+async function getSupabaseServer() {
+  const cookieStore = await cookies();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
@@ -99,8 +99,9 @@ function isPublicRow(r: AnyRow) {
   );
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const id = decodeURIComponent(params.id || "");
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id: rawId } = await params;
+  const id = decodeURIComponent(rawId || "");
 
   if (isBadId(id)) {
     return createMetadata({
@@ -111,7 +112,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     });
   }
 
-  const supabase = getSupabaseServer();
+  const supabase = await getSupabaseServer();
 
   const res = await supabase
     .from("material_listings")
@@ -160,8 +161,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   });
 }
 
-export default async function MaterialPublicDetailPage({ params }: { params: { id: string } }) {
-  const id = decodeURIComponent(params.id || "");
+export default async function MaterialPublicDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: rawId } = await params;
+  const id = decodeURIComponent(rawId || "");
 
   if (isBadId(id)) {
     return (
@@ -177,7 +179,7 @@ export default async function MaterialPublicDetailPage({ params }: { params: { i
     );
   }
 
-  const supabase = getSupabaseServer();
+  const supabase = await getSupabaseServer();
 
   const { data: userRes } = await supabase.auth.getUser();
   const viewerId = userRes?.user?.id ?? null;

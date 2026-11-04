@@ -10,17 +10,19 @@ import {
 export const revalidate = 3600;
 
 type PageProps = {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 };
 
 export async function generateMetadata({ params }: PageProps) {
-  return getPublicRfqMetadata(params.slug);
+  const { slug } = await params;
+  return getPublicRfqMetadata(slug);
 }
 
 export default async function PublicMarketRfqPage({ params }: PageProps) {
-  const rfq = await getPublicRfqBySlug(params.slug);
+  const { slug } = await params;
+  const rfq = await getPublicRfqBySlug(slug);
   if (!rfq) notFound();
 
   const vm = getPublicRfqViewModel(rfq);

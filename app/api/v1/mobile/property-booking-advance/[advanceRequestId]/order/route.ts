@@ -64,7 +64,7 @@ function gatewayConfiguration() {
 
 export async function POST(
   request: Request,
-  context: { params: { advanceRequestId: string } },
+  context: { params: Promise<{ advanceRequestId: string }> },
 ) {
   let paymentId: string | null = null;
   let attemptId: string | null = null;
@@ -79,7 +79,8 @@ export async function POST(
       return failure("Invalid request origin.", 403);
     }
 
-    const advanceRequestId = String(context.params.advanceRequestId || "").trim();
+    const { advanceRequestId: rawAdvanceRequestId } = await context.params;
+    const advanceRequestId = String(rawAdvanceRequestId || "").trim();
     const body = await request.json().catch(() => null);
     const idempotencyKey = String(body?.idempotencyKey ?? "").trim();
 

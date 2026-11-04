@@ -4,14 +4,15 @@ import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 export const dynamic = "force-dynamic";
 
 type Props = {
-  searchParams?: {
+  searchParams?: Promise<{
     member?: string;
-  };
+  }>;
 };
 
 export default async function DeleteMemberAccountPage({
   searchParams,
 }: Props) {
+  const resolvedSearchParams = await searchParams;
   const access =
     await requireMasterAdmin();
 
@@ -30,7 +31,7 @@ export default async function DeleteMemberAccountPage({
   }
 
   const userId = String(
-    searchParams?.member || ""
+  resolvedSearchParams?.member || ""
   ).trim();
 
   if (!userId) {

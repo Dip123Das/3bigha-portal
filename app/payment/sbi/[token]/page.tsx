@@ -7,13 +7,14 @@ export const dynamic = "force-dynamic";
 export default async function SbiPaymentLinkPage({
   params,
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
+  const { token } = await params;
   const admin = getSupabaseAdmin();
   const { data: request } = await admin
     .from("subscription_payment_requests")
     .select("subscription_plan,amount_paise,currency,status,expires_at")
-    .eq("share_token", params.token)
+    .eq("share_token", token)
     .maybeSingle();
 
   if (!request) notFound();

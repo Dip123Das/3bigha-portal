@@ -47,7 +47,7 @@ export type BuyerQuoteItem = {
 };
 
 export async function fetchBuyerQuoteCompare(rfqId: string) {
-  const supabase = getSupabaseServerClient(cookies());
+  const supabase = getSupabaseServerClient(await cookies());
 
   const { data: u, error: uErr } = await supabase.auth.getUser();
   if (uErr) return { error: uErr.message };

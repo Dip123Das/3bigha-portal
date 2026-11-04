@@ -71,7 +71,7 @@ async function sendWhatsAppMessage(to: string, message: string) {
 }
 
 export async function POST(req: Request) {
-  const supabase = getSupabaseServerClient(cookies());
+  const supabase = getSupabaseServerClient(await cookies());
 
   const {
     data: { session },

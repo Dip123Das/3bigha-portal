@@ -57,7 +57,7 @@ function errorResponse(error: unknown) {
 
 export async function POST(
   request: Request,
-  context: { params: { requestId: string } },
+  context: { params: Promise<{ requestId: string }> },
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
@@ -73,9 +73,10 @@ export async function POST(
       );
     }
 
+    const { requestId } = await context.params;
     const workspace = await decideMobilePropertyLegalReview({
       ownerUserId: auth.user.id,
-      requestId: clean(context.params.requestId),
+      requestId: clean(requestId),
       decision: clean(body.decision) as
         | "granted"
         | "declined"

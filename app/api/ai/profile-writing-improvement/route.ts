@@ -146,7 +146,7 @@ function cleanImprovedText(value: string): string {
 export async function POST(request: Request) {
   try {
     const supabase =
-      getSupabaseServerClient(cookies());
+      getSupabaseServerClient(await cookies());
 
     const {
       data: { user },

@@ -72,34 +72,35 @@ export function generateStaticParams() {
 }
 
 type PageProps = {
-  params: {
+  params: Promise<{
     module: string;
     state: string;
     district: string;
     city: string;
     locality: string;
-  };
+  }>;
 };
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const module = isSeoModule(params.module)
-    ? params.module
+  const resolvedParams = await params;
+  const module = isSeoModule(resolvedParams.module)
+    ? resolvedParams.module
     : "property";
 
   const geo = geoCities.find(
     (item) =>
-      item.stateSlug === params.state &&
-      item.districtSlug === params.district &&
-      item.citySlug === params.city
+      item.stateSlug === resolvedParams.state &&
+      item.districtSlug === resolvedParams.district &&
+      item.citySlug === resolvedParams.city
   );
 
   if (!geo) {
     return {};
   }
 
-  const locality = normalize(params.locality);
+  const locality = normalize(resolvedParams.locality);
 
   const title = `${moduleTitle(module)} in ${locality}, ${geo.city} | 3Bigha`;
 
@@ -107,7 +108,7 @@ export async function generateMetadata({
     module
   ).toLowerCase()} opportunities in ${locality}, ${geo.city}, ${geo.district}, ${geo.state}. Discover local listings, vendors, RFQs and AI-assisted marketplace workflows on 3Bigha.`;
 
-  const path = `/seo/${module}/${params.state}/${params.district}/${params.city}/${params.locality}`;
+  const path = `/seo/${module}/${resolvedParams.state}/${resolvedParams.district}/${resolvedParams.city}/${resolvedParams.locality}`;
 
   return {
     title,
@@ -126,29 +127,30 @@ export async function generateMetadata({
 }
 
 export default async function LocalitySeoPage({ params }: PageProps) {
-  const module = isSeoModule(params.module)
-    ? params.module
+  const resolvedParams = await params;
+  const module = isSeoModule(resolvedParams.module)
+    ? resolvedParams.module
     : "property";
 
   const geo = geoCities.find(
     (item) =>
-      item.stateSlug === params.state &&
-      item.districtSlug === params.district &&
-      item.citySlug === params.city
+      item.stateSlug === resolvedParams.state &&
+      item.districtSlug === resolvedParams.district &&
+      item.citySlug === resolvedParams.city
   );
 
   if (!geo) {
     notFound();
   }
 
-  const locality = normalize(params.locality);
+  const locality = normalize(resolvedParams.locality);
   const title = moduleTitle(module);
 
   const nearbyLocalities = (localityMap[geo.citySlug] || []).filter(
-    (item) => item !== params.locality
+    (item) => item !== resolvedParams.locality
   );
 
-  const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}/${params.district}/${params.city}/${params.locality}`;
+  const canonicalUrl = `${siteConfig.url}/seo/${module}/${resolvedParams.state}/${resolvedParams.district}/${resolvedParams.city}/${resolvedParams.locality}`;
 
   const liveMarketplace = await getLiveMarketplaceData(
     module,
@@ -172,10 +174,10 @@ export default async function LocalitySeoPage({ params }: PageProps) {
   const internalSeoLinks = [
     ...getCrossModuleSeoLinks({
       currentModule: module,
-      state: params.state,
-      district: params.district,
-      city: params.city,
-      locality: params.locality,
+      state: resolvedParams.state,
+      district: resolvedParams.district,
+      city: resolvedParams.city,
+      locality: resolvedParams.locality,
       areaLabel: locality,
     }),
     ...getIntentSeoLinks({
@@ -197,15 +199,15 @@ export default async function LocalitySeoPage({ params }: PageProps) {
       { name: "Home", url: siteConfig.url },
       {
         name: title,
-        url: `${siteConfig.url}/seo/${module}/${params.state}`,
+        url: `${siteConfig.url}/seo/${module}/${resolvedParams.state}`,
       },
       {
         name: geo.district,
-        url: `${siteConfig.url}/seo/${module}/${params.state}/${params.district}`,
+        url: `${siteConfig.url}/seo/${module}/${resolvedParams.state}/${resolvedParams.district}`,
       },
       {
         name: geo.city,
-        url: `${siteConfig.url}/seo/${module}/${params.state}/${params.district}/${params.city}`,
+        url: `${siteConfig.url}/seo/${module}/${resolvedParams.state}/${resolvedParams.district}/${resolvedParams.city}`,
       },
       {
         name: locality,
@@ -225,8 +227,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
   });
 
   
-  const seoRouteParams: any =
-    typeof params !== "undefined" && params ? params : {};
+  const seoRouteParams: any = await params;
 
   const seoQualityTitle = [
     seoRouteParams.module,
@@ -861,7 +862,7 @@ return (
             {nearbyLocalities.map((item) => (
               <Link
                 key={item}
-                href={`/seo/${module}/${params.state}/${params.district}/${params.city}/${item}`}
+                href={`/seo/${module}/${resolvedParams.state}/${resolvedParams.district}/${resolvedParams.city}/${item}`}
                 style={{
                   border: "1px solid #e2e8f0",
                   borderRadius: 12,
@@ -905,7 +906,7 @@ return (
             }}
           >
             <Link
-              href={`/seo/${module}/${params.state}/${params.district}/${params.city}`}
+              href={`/seo/${module}/${resolvedParams.state}/${resolvedParams.district}/${resolvedParams.city}`}
               style={{
                 border: "1px solid #e2e8f0",
                 borderRadius: 12,
@@ -919,7 +920,7 @@ return (
             </Link>
 
             <Link
-              href={`/seo/${module}/${params.state}/${params.district}`}
+              href={`/seo/${module}/${resolvedParams.state}/${resolvedParams.district}`}
               style={{
                 border: "1px solid #e2e8f0",
                 borderRadius: 12,
@@ -933,7 +934,7 @@ return (
             </Link>
 
             <Link
-              href={`/seo/${module}/${params.state}`}
+              href={`/seo/${module}/${resolvedParams.state}`}
               style={{
                 border: "1px solid #e2e8f0",
                 borderRadius: 12,

@@ -12,9 +12,10 @@ const VENDOR_PROFILE_TABLE = "business_profiles";
 const OLD_TABLE = "material_rfqs";
 const NEW_TABLE = "rfqs";
 
-export async function GET(req: Request, ctx: { params: { id: string } }) {
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
-    const rfqId = String(ctx?.params?.id || "").trim();
+    const { id } = await ctx.params;
+    const rfqId = String(id || "").trim();
     if (!rfqId) return NextResponse.json({ error: "Missing RFQ id." }, { status: 400 });
 
     const authHeader = req.headers.get("authorization") || "";

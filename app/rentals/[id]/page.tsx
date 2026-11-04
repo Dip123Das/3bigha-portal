@@ -37,8 +37,8 @@ function validRentalId(value: string) {
   return UUID_RE.test(String(value || "").trim());
 }
 
-function getPublicSupabase() {
-  const cookieStore = cookies();
+async function getPublicSupabase() {
+  const cookieStore = await cookies();
   const url =
     process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon =
@@ -62,7 +62,7 @@ function getPublicSupabase() {
 async function getPublicRental(
   id: string
 ): Promise<RentalPublicRow | null> {
-  const supabase = getPublicSupabase();
+  const supabase = await getPublicSupabase();
 
   if (!supabase) {
     return null;
@@ -169,9 +169,10 @@ function firstPhoto(photos: unknown) {
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const id = decodeURIComponent(params.id || "");
+  const { id: rawId } = await params;
+  const id = decodeURIComponent(rawId || "");
 
   if (!validRentalId(id)) {
     notFound();
@@ -230,9 +231,10 @@ export async function generateMetadata({
 export default async function RentalPublicDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const id = decodeURIComponent(params.id || "");
+  const { id: rawId } = await params;
+  const id = decodeURIComponent(rawId || "");
 
   if (!validRentalId(id)) {
     notFound();

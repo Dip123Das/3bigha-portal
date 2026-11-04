@@ -58,18 +58,19 @@ function errorResponse(error: unknown) {
 export async function POST(
   request: Request,
   context: {
-    params: {
+    params: Promise<{
       requestId: string;
       documentId: string;
-    };
+    }>;
   },
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
+    const { requestId, documentId } = await context.params;
     const access = await createMobilePropertyLegalDocumentAccess({
       buyerUserId: auth.user.id,
-      requestId: clean(context.params.requestId),
-      documentId: clean(context.params.documentId),
+      requestId: clean(requestId),
+      documentId: clean(documentId),
     });
 
     return NextResponse.json(mobileSuccess(access), {

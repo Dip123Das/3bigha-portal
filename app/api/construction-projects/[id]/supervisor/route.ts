@@ -9,13 +9,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 async function loadMilestones(projectId: string) {
-  const supabase = getSupabaseServerClient(cookies());
+  const supabase = getSupabaseServerClient(await cookies());
 
   const { data, error } = await supabase
     .from("construction_project_milestones")
@@ -32,7 +32,7 @@ async function loadMilestones(projectId: string) {
 
 export async function GET(_req: Request, context: RouteContext) {
   try {
-    const projectId = context.params.id;
+    const { id: projectId } = await context.params;
 
     if (!projectId) {
       return NextResponse.json(
@@ -69,7 +69,7 @@ export async function GET(_req: Request, context: RouteContext) {
 
 export async function POST(req: Request, context: RouteContext) {
   try {
-    const projectId = context.params.id;
+    const { id: projectId } = await context.params;
 
     if (!projectId) {
       return NextResponse.json(

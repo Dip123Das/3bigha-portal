@@ -33,12 +33,12 @@ export function generateStaticParams() {
 }
 
 type PageProps = {
-  params: {
+  params: Promise<{
     module: string;
     state: string;
     district: string;
     city: string;
-  };
+  }>;
 };
 
 function normalize(value: string) {
@@ -120,16 +120,17 @@ function seoBullets(module: SeoModule) {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const module = isSeoModule(params.module) ? params.module : "property";
-  const geo = getGeoBySlugs(params.state, params.district, params.city);
+  const resolvedParams = await params;
+  const module = isSeoModule(resolvedParams.module) ? resolvedParams.module : "property";
+  const geo = getGeoBySlugs(resolvedParams.state, resolvedParams.district, resolvedParams.city);
 
-  const state = geo?.state || normalize(params.state);
-  const district = geo?.district || normalize(params.district);
-  const city = geo?.city || normalize(params.city);
+  const state = geo?.state || normalize(resolvedParams.state);
+  const district = geo?.district || normalize(resolvedParams.district);
+  const city = geo?.city || normalize(resolvedParams.city);
 
   const title = `${moduleTitle(module)} in ${city}, ${district}, ${state} | 3Bigha`;
   const description = moduleDescription(module, city, district, state);
-  const path = `/seo/${module}/${params.state}/${params.district}/${params.city}`;
+  const path = `/seo/${module}/${resolvedParams.state}/${resolvedParams.district}/${resolvedParams.city}`;
 
   return {
     title,
@@ -153,16 +154,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function RegionalSeoPage({ params }: PageProps) {
-  const module = isSeoModule(params.module) ? params.module : "property";
-  const geo = getGeoBySlugs(params.state, params.district, params.city);
+  const resolvedParams = await params;
+  const module = isSeoModule(resolvedParams.module) ? resolvedParams.module : "property";
+  const geo = getGeoBySlugs(resolvedParams.state, resolvedParams.district, resolvedParams.city);
 
-  const state = geo?.state || normalize(params.state);
-  const district = geo?.district || normalize(params.district);
-  const city = geo?.city || normalize(params.city);
+  const state = geo?.state || normalize(resolvedParams.state);
+  const district = geo?.district || normalize(resolvedParams.district);
+  const city = geo?.city || normalize(resolvedParams.city);
 
   const title = moduleTitle(module);
   const description = moduleDescription(module, city, district, state);
-  const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}/${params.district}/${params.city}`;
+  const canonicalUrl = `${siteConfig.url}/seo/${module}/${resolvedParams.state}/${resolvedParams.district}/${resolvedParams.city}`;
 
   const bullets = seoBullets(module);
   const regionalContent = getRegionalSeoContent(module, city, district, state);
@@ -173,16 +175,16 @@ export default async function RegionalSeoPage({ params }: PageProps) {
   const regionalKeywordGroups = getRegionalKeywordGroups(module, city);
   const moduleKeywordGroups = getModuleKeywordGroups(module, city);
 
-  const nearbyCities = getNearbyGeoCities(params.state, params.district, params.city, 6);
+  const nearbyCities = getNearbyGeoCities(resolvedParams.state, resolvedParams.district, resolvedParams.city, 6);
 
   const relatedModuleLinks = getRelatedModuleSeoUrls(
     module,
-    params.state,
-    params.district,
-    params.city
+    resolvedParams.state,
+    resolvedParams.district,
+    resolvedParams.city
   );
 
-    const localityLinks = geoLocalities[params.city] || [];
+    const localityLinks = geoLocalities[resolvedParams.city] || [];
 
   const schemaGraph = buildSeoSchemaGraph({
     module,
@@ -196,11 +198,11 @@ export default async function RegionalSeoPage({ params }: PageProps) {
       { name: "Home", url: siteConfig.url },
       {
         name: title,
-        url: `${siteConfig.url}/seo/${module}/${params.state}`,
+        url: `${siteConfig.url}/seo/${module}/${resolvedParams.state}`,
       },
       {
         name: district,
-        url: `${siteConfig.url}/seo/${module}/${params.state}/${params.district}`,
+        url: `${siteConfig.url}/seo/${module}/${resolvedParams.state}/${resolvedParams.district}`,
       },
       {
         name: city,
@@ -212,7 +214,7 @@ export default async function RegionalSeoPage({ params }: PageProps) {
 
   
   const seoRouteParams: any =
-    typeof params !== "undefined" && params ? params : {};
+    resolvedParams;
 
   const seoQualityTitle = [
     seoRouteParams.module,
@@ -545,7 +547,7 @@ return (
               {localityLinks.map((locality) => (
                 <Link
                   key={locality}
-                  href={`/seo/${module}/${params.state}/${params.district}/${params.city}/${locality}`}
+                  href={`/seo/${module}/${resolvedParams.state}/${resolvedParams.district}/${resolvedParams.city}/${locality}`}
                   style={{
                     background: "#ffffff",
                     border: "1px solid #cffafe",

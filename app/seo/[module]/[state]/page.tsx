@@ -15,10 +15,10 @@ export async function generateStaticParams() {
 }
 
 type PageProps = {
-  params: {
+  params: Promise<{
     module: string;
     state: string;
-  };
+  }>;
 };
 
 function normalize(value: string) {
@@ -101,14 +101,15 @@ function stateDescription(module: SeoModule, state: string) {
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const module = isSeoModule(params.module) ? params.module : "property";
+  const resolvedParams = await params;
+  const module = isSeoModule(resolvedParams.module) ? resolvedParams.module : "property";
 
-  const stateGeo = (await getSeoGeoCities()).find((geo) => geo.stateSlug === params.state);
-  const state = stateGeo?.state || normalize(params.state);
+  const stateGeo = (await getSeoGeoCities()).find((geo) => geo.stateSlug === resolvedParams.state);
+  const state = stateGeo?.state || normalize(resolvedParams.state);
 
   const title = `${moduleTitle(module)} in ${state} | 3Bigha`;
   const description = stateDescription(module, state);
-  const path = `/seo/${module}/${params.state}`;
+  const path = `/seo/${module}/${resolvedParams.state}`;
 
   return {
     title,
@@ -132,10 +133,11 @@ export async function generateMetadata({
 }
 
 export default async function StateSeoPage({ params }: PageProps) {
-  const module = isSeoModule(params.module) ? params.module : "property";
+  const resolvedParams = await params;
+  const module = isSeoModule(resolvedParams.module) ? resolvedParams.module : "property";
 
-  const stateGeo = (await getSeoGeoCities()).find((geo) => geo.stateSlug === params.state);
-  const state = stateGeo?.state || normalize(params.state);
+  const stateGeo = (await getSeoGeoCities()).find((geo) => geo.stateSlug === resolvedParams.state);
+  const state = stateGeo?.state || normalize(resolvedParams.state);
 
   const title = moduleTitle(module);
   const description = stateDescription(module, state);
@@ -147,7 +149,7 @@ export default async function StateSeoPage({ params }: PageProps) {
   }> = Array.from(
     new Map(
       (await getSeoGeoCities())
-        .filter((geo) => geo.stateSlug === params.state)
+        .filter((geo) => geo.stateSlug === resolvedParams.state)
         .map((geo) => [
           geo.districtSlug,
           {
@@ -162,11 +164,11 @@ export default async function StateSeoPage({ params }: PageProps) {
   const relatedModules = seoModules.filter((item) => item !== module);
   const relatedCategories = getSeoCategories(module).slice(0, 12);
   const categoryBaseGeo = (await getSeoGeoCities(5000)).find(
-    (geo) => geo.stateSlug === params.state && geo.districtSlug && geo.citySlug
+    (geo) => geo.stateSlug === resolvedParams.state && geo.districtSlug && geo.citySlug
   );
   const searches = popularSearches(module, state);
 
-  const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}`;
+  const canonicalUrl = `${siteConfig.url}/seo/${module}/${resolvedParams.state}`;
 
   const schema = {
     "@context": "https://schema.org",
@@ -193,7 +195,7 @@ export default async function StateSeoPage({ params }: PageProps) {
 
   
   const seoRouteParams: any =
-    typeof params !== "undefined" && params ? params : {};
+    resolvedParams;
 
   const seoQualityTitle = [
     seoRouteParams.module,
@@ -431,7 +433,7 @@ return (
             {relatedModules.map((item) => (
               <Link
                 key={item}
-                href={`/seo/${item}/${params.state}`}
+                href={`/seo/${item}/${resolvedParams.state}`}
                 style={{
                   border: "1px solid #e2e8f0",
                   borderRadius: 12,

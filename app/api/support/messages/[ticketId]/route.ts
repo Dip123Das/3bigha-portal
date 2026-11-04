@@ -19,11 +19,12 @@ function getSupabaseAdmin() {
 
 export async function GET(
   req: Request,
-  { params }: { params: { ticketId: string } }
+  { params }: { params: Promise<{ ticketId: string }> }
 ) {
   try {
     const supabase = getSupabaseAdmin();
-    const ticketId = String(params?.ticketId || "").trim();
+    const resolvedParams = await params;
+    const ticketId = String(resolvedParams.ticketId || "").trim();
 
     const authHeader = req.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "").trim();

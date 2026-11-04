@@ -8,9 +8,9 @@ import { Badge } from "@/components/ui/Badge";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: {
+  params: Promise<{
     dispatchId: string;
-  };
+  }>;
 };
 
 const statusLabels: Record<string, string> = {
@@ -51,12 +51,13 @@ function statusColor(status: string) {
 }
 
 export default async function BuyerDeliveryTrackPage({ params }: PageProps) {
-  const supabase = getSupabaseServerClient(cookies());
+  const { dispatchId } = await params;
+  const supabase = getSupabaseServerClient(await cookies());
 
   const { data: dispatch } = await supabase
     .from("inventory_dispatches")
     .select("*")
-    .eq("id", params.dispatchId)
+    .eq("id", dispatchId)
     .maybeSingle();
 
   const vehicleId = dispatch?.vehicle_id || null;

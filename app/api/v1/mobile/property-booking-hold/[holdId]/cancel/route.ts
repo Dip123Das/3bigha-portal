@@ -57,16 +57,17 @@ function failure(error: unknown) {
 
 export async function POST(
   request: NextRequest,
-  context: { params: { holdId: string } },
+  context: { params: Promise<{ holdId: string }> },
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
     const body =
       (await request.json().catch(() => ({}))) as
         Partial<MobilePropertyUnitHoldCancellation>;
+    const { holdId } = await context.params;
     const workspace = await cancelMobilePropertyUnitHold({
       buyerUserId: auth.user.id,
-      holdId: clean(context.params.holdId),
+      holdId: clean(holdId),
       reason: typeof body.reason === "string" ? body.reason : null,
     });
     return NextResponse.json(

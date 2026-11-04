@@ -143,11 +143,12 @@ async function loadRoomAndDocument(
 
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string; documentId: string } }
+  { params }: { params: Promise<{ id: string; documentId: string }> }
 ) {
   try {
-    const dealRoomId = decodeURIComponent(params?.id || "").trim();
-    const documentId = decodeURIComponent(params?.documentId || "").trim();
+    const resolvedParams = await params;
+    const dealRoomId = decodeURIComponent(resolvedParams.id || "").trim();
+    const documentId = decodeURIComponent(resolvedParams.documentId || "").trim();
 
     if (!UUID_RE.test(dealRoomId) || !UUID_RE.test(documentId)) {
       return NextResponse.json(
@@ -262,11 +263,12 @@ export async function GET(
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string; documentId: string } }
+  { params }: { params: Promise<{ id: string; documentId: string }> }
 ) {
   try {
-    const dealRoomId = decodeURIComponent(params?.id || "").trim();
-    const documentId = decodeURIComponent(params?.documentId || "").trim();
+    const resolvedParams = await params;
+    const dealRoomId = decodeURIComponent(resolvedParams.id || "").trim();
+    const documentId = decodeURIComponent(resolvedParams.documentId || "").trim();
 
     if (!UUID_RE.test(dealRoomId) || !UUID_RE.test(documentId)) {
       return NextResponse.json(

@@ -55,11 +55,12 @@ function transferList(order: { transfers?: unknown }) {
 
 export async function POST(
   request: Request,
-  context: { params: { advanceRequestId: string } },
+  context: { params: Promise<{ advanceRequestId: string }> },
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
-    const advanceRequestId = String(context.params.advanceRequestId || "").trim();
+    const { advanceRequestId: rawAdvanceRequestId } = await context.params;
+    const advanceRequestId = String(rawAdvanceRequestId || "").trim();
     if (!UUID.test(advanceRequestId)) {
       return failure("Submit a valid property advance reference.", 400);
     }

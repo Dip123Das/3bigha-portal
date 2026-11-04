@@ -26,19 +26,20 @@ import { buildVendorAuthorityJsonLd } from "@/lib/seo/vendor-authority-jsonld";
 import { buildVendorTrustReputation } from "@/lib/vendors/vendor-trust-reputation";
 
 type Props = {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 };
 
 export async function generateMetadata({
   params,
 }: Props): Promise<Metadata> {
-  const fallbackVendorName = params.slug
+  const { slug } = await params;
+  const fallbackVendorName = slug
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 
-  const vendorData = await getVendorAuthorityDataBySlug(params.slug);
+  const vendorData = await getVendorAuthorityDataBySlug(slug);
 
   const vendorName = vendorData?.businessName || fallbackVendorName;
 
@@ -51,20 +52,21 @@ export async function generateMetadata({
 export default async function VendorAuthorityPage({
   params,
 }: Props) {
-  const fallbackVendorName = params.slug
+  const { slug } = await params;
+  const fallbackVendorName = slug
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 
-  const vendorData = await getVendorAuthorityDataBySlug(params.slug);
+  const vendorData = await getVendorAuthorityDataBySlug(slug);
 
   const vendorName = vendorData?.businessName || fallbackVendorName;
 
   const reputation = await getVendorReputationData(
-    vendorData?.vendorId || params.slug
+    vendorData?.vendorId || slug
   );
 
   const graph = buildVendorAuthorityGraph({
-    vendorId: vendorData?.vendorId || params.slug,
+    vendorId: vendorData?.vendorId || slug,
 
     businessName: vendorName,
 
@@ -114,9 +116,9 @@ export default async function VendorAuthorityPage({
   const summary = getVendorAuthoritySummary(graph);
 
     const leaderboard = calculateVendorLeaderboardScore({
-    vendorId: vendorData?.vendorId || params.slug,
+    vendorId: vendorData?.vendorId || slug,
     businessName: vendorName,
-    slug: params.slug,
+    slug: slug,
     city: vendorData?.city || "Cooch Behar",
     district: vendorData?.district || "Cooch Behar",
     state: vendorData?.state || "West Bengal",
@@ -131,13 +133,13 @@ export default async function VendorAuthorityPage({
   });
 
     const recommendationCandidates = await getVendorRecommendationCandidates(
-    vendorData?.vendorId || params.slug
+    vendorData?.vendorId || slug
   );
 
     const recommendation = calculateVendorRecommendationScore({
-    vendorId: vendorData?.vendorId || params.slug,
+    vendorId: vendorData?.vendorId || slug,
     businessName: vendorName,
-    slug: params.slug,
+    slug: slug,
     city: vendorData?.city || "Cooch Behar",
     district: vendorData?.district || "Cooch Behar",
     state: vendorData?.state || "West Bengal",
@@ -177,9 +179,9 @@ export default async function VendorAuthorityPage({
 
     const recommendationClusters = buildVendorRecommendationClusters({
     baseVendor: {
-      vendorId: vendorData?.vendorId || params.slug,
+      vendorId: vendorData?.vendorId || slug,
       businessName: vendorName,
-      slug: params.slug,
+      slug: slug,
       city: vendorData?.city || "Cooch Behar",
       district: vendorData?.district || "Cooch Behar",
       state: vendorData?.state || "West Bengal",
@@ -215,11 +217,11 @@ export default async function VendorAuthorityPage({
 
   const jsonLd = buildVendorAuthorityJsonLd({
     graph,
-    url: `https://3bigha.com/vendor/${params.slug}`,
+    url: `https://3bigha.com/vendor/${slug}`,
   });
 
 const internalLinks = buildVendorInternalLinks({
-  vendorSlug: params.slug,
+  vendorSlug: slug,
 
   state: vendorData?.state || "West Bengal",
 

@@ -17,10 +17,11 @@ function displayDate(value: unknown) {
 export default async function PublicRegistrationVerificationPage({
   params,
 }: {
-  params: {
+  params: Promise<{
     certificateNumber: string;
-  };
+  }>;
 }) {
+  const { certificateNumber: rawCertificateNumber } = await params;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey =
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -37,7 +38,7 @@ export default async function PublicRegistrationVerificationPage({
   });
 
   const certificateNumber = decodeURIComponent(
-    params.certificateNumber
+    rawCertificateNumber
   )
     .trim()
     .toUpperCase();

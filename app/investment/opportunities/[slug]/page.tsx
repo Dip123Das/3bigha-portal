@@ -11,11 +11,12 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
   const opportunity =
     await getOpportunityBySlugOrId(
-      params.slug
+      slug
     );
 
   if (!opportunity) {
@@ -307,9 +308,10 @@ function MetricCard({
 export default async function InvestmentOpportunityDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const slugOrId = decodeURIComponent(params.slug || "").trim();
+  const { slug } = await params;
+  const slugOrId = decodeURIComponent(slug || "").trim();
   const opportunity = await getOpportunityBySlugOrId(slugOrId);
 
   if (!opportunity) notFound();

@@ -16,10 +16,11 @@ type RfqRow = {
 export default async function BuyerQuoteComparePage({
   params,
 }: {
-  params: { rfqId: string };
+  params: Promise<{ rfqId: string }>;
 }) {
-  const supabase = getSupabaseServerClient(cookies());
-  const rfqParam = decodeURIComponent(params.rfqId || "").trim();
+  const { rfqId: rawRfqId } = await params;
+  const supabase = getSupabaseServerClient(await cookies());
+  const rfqParam = decodeURIComponent(rawRfqId || "").trim();
 
   if (!rfqParam) {
     return (

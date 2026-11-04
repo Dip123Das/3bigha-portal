@@ -50,10 +50,11 @@ function isBuilderLikeRole(role: string | null | undefined) {
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const opportunityId = decodeURIComponent(params?.id || "").trim();
+    const resolvedParams = await params;
+    const opportunityId = decodeURIComponent(resolvedParams.id || "").trim();
 
     if (!UUID_RE.test(opportunityId)) {
       return NextResponse.json(

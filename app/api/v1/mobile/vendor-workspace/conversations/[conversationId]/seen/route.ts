@@ -17,9 +17,9 @@ import {
 } from "@/lib/mobile/server/vendor-conversation";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     conversationId: string;
-  };
+  }>;
 };
 
 const headers = {
@@ -33,12 +33,13 @@ export async function POST(
 ) {
   try {
     const auth = await authenticateMobileRequest(request);
+    const { conversationId } = await params;
     const body = await request.json().catch(() => ({}));
 
     const state = await markMobileVendorConversationRead(
       auth.supabase,
       auth.user,
-      decodeURIComponent(params.conversationId || ""),
+      decodeURIComponent(conversationId || ""),
       body?.lastSeenMessageId,
     );
 

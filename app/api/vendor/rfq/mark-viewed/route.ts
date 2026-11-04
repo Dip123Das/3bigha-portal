@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const supabase = getSupabaseServerClient(cookies());
+    const supabase = getSupabaseServerClient(await cookies());
 
     // Must be logged in
     const { data: u, error: uErr } = await supabase.auth.getUser();
