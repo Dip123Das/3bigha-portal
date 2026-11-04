@@ -10,19 +10,10 @@ export default function AddPropertyPage() {
   return (
     <Suspense
       fallback={
-        <main>
+        <main className="min-h-screen bg-slate-50">
           <Container>
             <EmptyState message="Loading property form..." />
           </Container>
-          <style jsx global>{`
-            header,
-            footer {
-              display: none !important;
-            }
-            body {
-              background: #f8fafc;
-            }
-          `}</style>
         </main>
       }
     >
