@@ -12,6 +12,7 @@
     "ios": "expo run:ios",
     "config:check": "expo config --type public",
     "verify:foundation": "node ../../scripts/verify-mobile-foundation.mjs",
+    "verify:attachment-viewer": "node ../../scripts/verify-mobile-native-attachment-viewer.mjs",
     "typecheck": "tsc --noEmit",
     "bundle:android": "expo export --platform android --output-dir dist/android",
     "bundle:ios": "expo export --platform ios --output-dir dist/ios"

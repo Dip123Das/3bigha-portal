@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
@@ -8,8 +9,13 @@ import { AppRecoveryBoundary } from "@/features/recovery/AppRecoveryBoundary";
 import { AppPrivacyShield } from "@/features/privacy/AppPrivacyShield";
 import { DeviceReauthenticationProvider } from "@/features/privacy/DeviceReauthenticationProvider";
 import { ScreenCaptureProtection } from "@/features/privacy/ScreenCaptureProtection";
+import { cleanupProtectedAttachmentCache } from "@/lib/files/protected-attachment";
 
 export default function RootLayout() {
+  useEffect(() => {
+    void cleanupProtectedAttachmentCache();
+  }, []);
+
   return (
     <AppRecoveryBoundary>
       <ScreenCaptureProtection>
