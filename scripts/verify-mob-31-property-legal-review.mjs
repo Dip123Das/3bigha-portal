@@ -151,10 +151,13 @@ assert.match(screen, /Send legal-review request/);
 assert.match(screen, /Grant for 48 hours/);
 assert.match(screen, /Decline request/);
 assert.match(screen, /Revoke confidential access/);
-assert.match(screen, /Open audited 60-second view/);
-assert.match(
+assert.match(screen, /Preview in 3Bigha/);
+assert.match(screen, /useProtectedAttachmentViewer/);
+assert.match(screen, /attachmentViewer\.open\(/);
+assert.match(screen, /access\.accessUrl/);
+assert.doesNotMatch(
   screen,
-  /WebBrowser\.openBrowserAsync\(access\.accessUrl\)/,
+  /WebBrowser\.openBrowserAsync|Linking\.openURL/,
 );
 assert.match(screen, /accessibilityRole="checkbox"/);
 assert.match(

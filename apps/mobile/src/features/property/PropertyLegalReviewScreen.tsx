@@ -1,5 +1,4 @@
 import type { Session } from "@supabase/supabase-js";
-import * as WebBrowser from "expo-web-browser";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -14,6 +13,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors, radii, spacing, typography } from "@/theme/tokens";
+import { ProtectedAttachmentViewer } from "@/lib/files/ProtectedAttachmentViewer";
+import { useProtectedAttachmentViewer } from "@/lib/files/useProtectedAttachmentViewer";
 import { PropertyBookingApplicationScreen } from "./PropertyBookingApplicationScreen";
 import {
   createPropertyLegalDocumentAccess,
@@ -68,6 +69,7 @@ export function PropertyLegalReviewScreen({
   const [decisionNote, setDecisionNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const attachmentViewer = useProtectedAttachmentViewer();
   const [showBookingHold, setShowBookingHold] = useState(false);
   const [showBookingApplication, setShowBookingApplication] =
     useState(false);
@@ -163,9 +165,13 @@ export function PropertyLegalReviewScreen({
           documentId: document.id,
         },
       );
-      await WebBrowser.openBrowserAsync(access.accessUrl);
+      await attachmentViewer.open(
+        access.accessUrl,
+        document.originalFilename || document.title,
+        document.mimeType,
+      );
       setMessage(
-        "This confidential document view was recorded. Temporary access expires shortly.",
+        "This confidential document is displayed in the private in-app viewer. Its access was recorded.",
       );
     } catch (error) {
       setMessage(
@@ -447,6 +453,7 @@ export function PropertyLegalReviewScreen({
                   <DocumentCard
                     document={document}
                     key={document.id}
+                    disabled={busy || attachmentViewer.loading}
                     onOpen={
                       workspace.permissions.actor === "buyer"
                         ? () => void openDocument(document)
@@ -482,6 +489,15 @@ export function PropertyLegalReviewScreen({
           legal opinion.
         </Text>
       </ScrollView>
+      {attachmentViewer.loading ? (
+        <View style={styles.card}>
+          <Text style={styles.muted}>Preparing protected document preview…</Text>
+        </View>
+      ) : null}
+      <ProtectedAttachmentViewer
+        attachment={attachmentViewer.attachment}
+        onClose={attachmentViewer.close}
+      />
     </SafeAreaView>
   );
 }
@@ -527,9 +543,11 @@ function RequestStatus({
 function DocumentCard({
   document,
   onOpen,
+  disabled,
 }: {
   document: PropertyLegalReviewDocument;
   onOpen?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <View style={styles.document}>
@@ -552,7 +570,7 @@ function DocumentCard({
         </Text>
       ))}
       {onOpen ? (
-        <Button label="Open audited 60-second view" onPress={onOpen} />
+        <Button disabled={disabled} label={disabled ? "Preparing secure preview…" : "Preview in 3Bigha"} onPress={onOpen} />
       ) : null}
     </View>
   );

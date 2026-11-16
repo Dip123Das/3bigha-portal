@@ -34,7 +34,9 @@ export type MobileApiErrorCode =
   | "PROPERTY_BOOKING_APPLICATION_FAILED"
   | "PROPERTY_BOOKING_ADVANCE_FAILED"
   | "VENDOR_WORKSPACE_FAILED"
-  | "PROPERTY_AGREEMENT_READINESS_FAILED";
+  | "PROPERTY_AGREEMENT_READINESS_FAILED"
+  | "MARKETPLACE_UNAVAILABLE"
+  | "INVALID_CATEGORY";
 
 export type MobileOnboardingPath = "customer" | "business" | "individual_professional";
 
