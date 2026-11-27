@@ -227,8 +227,25 @@ export async function saveMobileProfile(supabase: SupabaseClient, user: User, in
   };
   if (state) profilePayload.state = state;
   if (district) profilePayload.city = district;
-  if (path === "customer" && (input.lgdStateCode != null || input.lgdDistrictCode != null)) {
-    const area = await resolveCustomerLgd(supabase, Number(input.lgdStateCode), Number(input.lgdDistrictCode));
+  if (path === "customer" && (input.lgdStateCode != null || input.lgdDistrictCode != null || input.lgdArea != null)) {
+    const local = input.lgdArea;
+    if (local != null && (
+      typeof local !== "object" || !["rural", "urban"].includes(local.mode) ||
+      [local.subdivisionId, local.blockId, local.placeId].some(
+        (id) => id != null && (typeof id !== "string" || !/^[0-9]+$/.test(id)),
+      )
+    )) {
+      throw new MobileOnboardingError(400, "INVALID_LGD_AREA", "Select a valid official location.");
+    }
+    const area = await resolveCustomerLgd(
+      supabase, Number(input.lgdStateCode), Number(input.lgdDistrictCode),
+      local ? {
+        mode: local.mode,
+        subdivision: local.subdivisionId ? { id: local.subdivisionId } : null,
+        block: local.blockId ? { id: local.blockId } : null,
+        place: local.placeId ? { id: local.placeId } : null,
+      } : undefined,
+    );
     if (!area) throw new MobileOnboardingError(400, "INVALID_LGD_AREA", "Select a district in the chosen official state.");
     Object.assign(profilePayload, area);
   }
