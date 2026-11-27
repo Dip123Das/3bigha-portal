@@ -182,10 +182,10 @@ export default function CustomerOnboardingClient() {
       }
 
       const area = officialArea.state && officialArea.district
-        ? await resolveCustomerLgd(supabase, Number(officialArea.state.id), Number(officialArea.district.id))
+        ? await resolveCustomerLgd(supabase, Number(officialArea.state.id), Number(officialArea.district.id), officialArea)
         : null;
       if (officialArea.state && officialArea.district && !area) {
-        throw new Error("Select a district in the chosen official state.");
+        throw new Error("Check that each official location belongs to the area selected above it.");
       }
 
       const now = new Date().toISOString();
@@ -323,7 +323,7 @@ export default function CustomerOnboardingClient() {
 
         <details>
           <summary>Choose official area (LGD)</summary>
-          <GeoSelector value={officialArea} includeSubdivision={false} includeBlock={false} includePlace={false}
+          <GeoSelector value={officialArea}
             disabled={saving} onChange={(selection) => {
               setOfficialArea(selection);
               setStateName(selection.state?.name ?? "");
@@ -372,7 +372,8 @@ export default function CustomerOnboardingClient() {
 
         {stateName.trim() && districtName.trim() ? (
           <a href={"https://www.google.com/maps/search/?api=1&query=" +
-            encodeURIComponent([districtName.trim(), stateName.trim(), "India"].join(", "))}
+            encodeURIComponent([officialArea.place?.name, officialArea.block?.name, officialArea.subdivision?.name,
+              districtName.trim(), stateName.trim(), "India"].filter(Boolean).join(", "))}
             target="_blank" rel="noopener noreferrer">View this area in Google Maps</a>
         ) : null}
 
