@@ -5,6 +5,8 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
+import { resolveCustomerLgd } from "@/lib/geography/customerLgd";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
 function safeNextPath(raw: string | null) {
@@ -36,8 +38,12 @@ export default function CustomerOnboardingClient() {
   const [stateName, setStateName] = useState("");
   const [districtName, setDistrictName] =
     useState("");
+  const [officialArea, setOfficialArea] = useState<GeoSelection>({});
   const [pincode, setPincode] = useState("");
   const [saving, setSaving] = useState(false);
+  const [nearby, setNearby] = useState<string[] | null>(null);
+  const [nearbyMessage, setNearbyMessage] = useState("");
+  const [searchingNearby, setSearchingNearby] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -76,7 +82,7 @@ export default function CustomerOnboardingClient() {
       supabase
         .from("profiles")
         .select(
-          "full_name,phone,state,city,lgd_state_code,lgd_district_code"
+          "full_name,phone,state,city,pincode,lgd_state_code,lgd_district_code"
         )
         .eq("id", user.id)
         .maybeSingle()
@@ -103,9 +109,8 @@ export default function CustomerOnboardingClient() {
             String(profile.state || "")
           );
 
-          setDistrictName(
-            String(profile.city || "")
-          );
+          setDistrictName(String(profile.city || ""));
+          setPincode(String(profile.pincode || ""));
         });
     });
 
@@ -113,6 +118,27 @@ export default function CustomerOnboardingClient() {
       alive = false;
     };
   }, [router, supabase]);
+
+  async function findNearbyVendors() {
+    setSearchingNearby(true);
+    setNearby(null);
+    setNearbyMessage("");
+    try {
+      if (!navigator.geolocation) throw new Error();
+      const { coords } = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+      });
+      const query = new URLSearchParams({ lat: String(coords.latitude), lng: String(coords.longitude), limit: "5" });
+      const response = await fetch("/api/nearby/vendors?" + query);
+      if (!response.ok) throw new Error();
+      const data = await response.json() as { results: { business_name: string | null }[] };
+      setNearby(data.results.flatMap(({ business_name }) => business_name ? [business_name] : []));
+    } catch {
+      setNearbyMessage("Nearby vendors could not be loaded. You can still continue signing up.");
+    } finally {
+      setSearchingNearby(false);
+    }
+  }
 
   async function completeCustomerSetup(
     event: React.FormEvent
@@ -155,6 +181,13 @@ export default function CustomerOnboardingClient() {
         );
       }
 
+      const area = officialArea.state && officialArea.district
+        ? await resolveCustomerLgd(supabase, Number(officialArea.state.id), Number(officialArea.district.id))
+        : null;
+      if (officialArea.state && officialArea.district && !area) {
+        throw new Error("Select a district in the chosen official state.");
+      }
+
       const now = new Date().toISOString();
 
       const { error: authError } =
@@ -192,6 +225,7 @@ export default function CustomerOnboardingClient() {
               phone: normalizePhone(phone),
               state: stateName.trim(),
               city: districtName.trim(),
+              ...(area ?? {}),
               pincode:
                 pincode.trim() || null,
               portal_use_reason:
@@ -287,14 +321,26 @@ export default function CustomerOnboardingClient() {
           />
         </label>
 
+        <details>
+          <summary>Choose official area (LGD)</summary>
+          <GeoSelector value={officialArea} includeSubdivision={false} includeBlock={false} includePlace={false}
+            disabled={saving} onChange={(selection) => {
+              setOfficialArea(selection);
+              setStateName(selection.state?.name ?? "");
+              setDistrictName(selection.district?.name ?? "");
+            }} />
+        </details>
+
         <div style={twoColumnStyle}>
           <label style={labelStyle}>
             State *
             <input
               value={stateName}
-              onChange={(event) =>
-                setStateName(event.target.value)
-              }
+              onChange={(event) => {
+                setOfficialArea({});
+                setStateName(event.target.value);
+                setDistrictName("");
+              }}
               style={inputStyle}
             />
           </label>
@@ -303,11 +349,10 @@ export default function CustomerOnboardingClient() {
             District / City *
             <input
               value={districtName}
-              onChange={(event) =>
-                setDistrictName(
-                  event.target.value
-                )
-              }
+              onChange={(event) => {
+                setOfficialArea((area) => ({ state: area.state }));
+                setDistrictName(event.target.value);
+              }}
               style={inputStyle}
             />
           </label>
@@ -324,6 +369,20 @@ export default function CustomerOnboardingClient() {
             style={inputStyle}
           />
         </label>
+
+        {stateName.trim() && districtName.trim() ? (
+          <a href={"https://www.google.com/maps/search/?api=1&query=" +
+            encodeURIComponent([districtName.trim(), stateName.trim(), "India"].join(", "))}
+            target="_blank" rel="noopener noreferrer">View this area in Google Maps</a>
+        ) : null}
+
+        <button type="button" disabled={searchingNearby || saving} onClick={() => void findNearbyVendors()}>
+          {searchingNearby ? "Finding nearby vendors…" : "Find vendors near my current location"}
+        </button>
+        <div aria-live="polite">
+          {nearbyMessage || (nearby && (nearby.length ? <ul>{nearby.map((name, index) =>
+            <li key={index}>{name}</li>)}</ul> : "No nearby vendors found."))}
+        </div>
 
         <div style={locationNoteStyle}>
           Your exact delivery or service address will be

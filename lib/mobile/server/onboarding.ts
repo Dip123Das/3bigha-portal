@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import type { MobileEvidenceAsset, MobileOnboardingPath, MobileOnboardingState } from "@/lib/mobile/contracts/v1";
+import { resolveCustomerLgd } from "@/lib/geography/customerLgd";
 import { resolveLocation } from "@/lib/geography/resolveLocation";
 
 const PROTECTED_KEYS = /(?:approval|verified|verification|grant|role|subscription|dashboard|eligible|score|confidence|decision)/i;
@@ -126,7 +127,7 @@ export async function loadMobileOnboarding(supabase: SupabaseClient, user: User)
     identityOptions: options,
     selectedIdentityKeys: selected,
     primaryIdentityKey: clean(meta.primary_human_identity || (professional as any)?.primary_skill_key) || null,
-    profile: { fullName: clean((profile as any)?.full_name), phone: clean((profile as any)?.phone), state: clean((profile as any)?.state), district: clean((profile as any)?.city), pincode: clean((profile as any)?.pincode) },
+    profile: { fullName: clean(profile?.full_name || meta.full_name || meta.name), phone: clean(profile?.phone || user.phone || meta.phone), state: clean((profile as any)?.state), district: clean((profile as any)?.city), pincode: clean((profile as any)?.pincode) },
     business: {
       businessName: clean((business as any)?.business_name), businessType: clean((business as any)?.business_type),
       businessIdentities: Array.isArray((business as any)?.business_identities) ? (business as any).business_identities.map(String) : [],
@@ -226,6 +227,11 @@ export async function saveMobileProfile(supabase: SupabaseClient, user: User, in
   };
   if (state) profilePayload.state = state;
   if (district) profilePayload.city = district;
+  if (path === "customer" && (input.lgdStateCode != null || input.lgdDistrictCode != null)) {
+    const area = await resolveCustomerLgd(supabase, Number(input.lgdStateCode), Number(input.lgdDistrictCode));
+    if (!area) throw new MobileOnboardingError(400, "INVALID_LGD_AREA", "Select a district in the chosen official state.");
+    Object.assign(profilePayload, area);
+  }
   if (pincode) profilePayload.pincode = pincode;
   const { error } = await supabase.from("profiles").upsert(profilePayload, { onConflict: "id" });
   if (error) throw error;
