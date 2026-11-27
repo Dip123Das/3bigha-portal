@@ -435,7 +435,7 @@ export default function GeoSelector({
               slug: null,
             }
           : null,
-      place: {
+      place: isUrban && !option.ward_id ? null : {
         id: isUrban
           ? option.ward_id || option.local_body_id || option.id
           : option.village_id || option.id,
@@ -578,7 +578,7 @@ export default function GeoSelector({
                 placeholder={selection.subdivision ? "Search development block" : "Select sub district first"}
                 value={selection.block}
                 disabled={disabled || !selection.subdivision}
-                params={{ districtId: selection.district?.id }}
+                params={{ districtId: selection.district?.id, subdivisionId: selection.subdivision?.id }}
                 onChange={(block) =>
                   updateSelection({
                     ...selection,
