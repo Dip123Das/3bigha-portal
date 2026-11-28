@@ -41,9 +41,6 @@ export default function CustomerOnboardingClient() {
   const [officialArea, setOfficialArea] = useState<GeoSelection>({});
   const [pincode, setPincode] = useState("");
   const [saving, setSaving] = useState(false);
-  const [nearby, setNearby] = useState<string[] | null>(null);
-  const [nearbyMessage, setNearbyMessage] = useState("");
-  const [searchingNearby, setSearchingNearby] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -118,27 +115,6 @@ export default function CustomerOnboardingClient() {
       alive = false;
     };
   }, [router, supabase]);
-
-  async function findNearbyVendors() {
-    setSearchingNearby(true);
-    setNearby(null);
-    setNearbyMessage("");
-    try {
-      if (!navigator.geolocation) throw new Error();
-      const { coords } = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
-      });
-      const query = new URLSearchParams({ lat: String(coords.latitude), lng: String(coords.longitude), limit: "5" });
-      const response = await fetch("/api/nearby/vendors?" + query);
-      if (!response.ok) throw new Error();
-      const data = await response.json() as { results: { business_name: string | null }[] };
-      setNearby(data.results.flatMap(({ business_name }) => business_name ? [business_name] : []));
-    } catch {
-      setNearbyMessage("Nearby vendors could not be loaded. You can still continue signing up.");
-    } finally {
-      setSearchingNearby(false);
-    }
-  }
 
   async function completeCustomerSetup(
     event: React.FormEvent
@@ -376,14 +352,6 @@ export default function CustomerOnboardingClient() {
               districtName.trim(), stateName.trim(), "India"].filter(Boolean).join(", "))}
             target="_blank" rel="noopener noreferrer">View this area in Google Maps</a>
         ) : null}
-
-        <button type="button" disabled={searchingNearby || saving} onClick={() => void findNearbyVendors()}>
-          {searchingNearby ? "Finding nearby vendors…" : "Find vendors near my current location"}
-        </button>
-        <div aria-live="polite">
-          {nearbyMessage || (nearby && (nearby.length ? <ul>{nearby.map((name, index) =>
-            <li key={index}>{name}</li>)}</ul> : "No nearby vendors found."))}
-        </div>
 
         <div style={locationNoteStyle}>
           Your exact delivery or service address will be
